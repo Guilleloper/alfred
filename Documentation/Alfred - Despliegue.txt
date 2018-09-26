@@ -1,0 +1,80 @@
+########################
+# ALFRED - DESPLIEGUE  #
+########################
+
+
+- Instalar TaskWarrior:
+  # sudo apt-get install taskwarrior
+
+- Si fuera necesario migrar datos anteriores de TaskWarrior, se debe generar paquete con los datos de TaskWarrior (ficheros .data) y ubicarlos donde corresponda (en este caso en la RasPi):
+  # cd ${home}/.task
+  # tar cvfz data.tar.gz *.data
+  # scp data.tar.gz pi@RASPI:/home/pi/.task/
+  # rm -fr data.tar.gz
+
+- Comprobar la correcta ubicación en la RasPi:
+  # ls -rtl /home/pi/.task/data.tar.gz
+  -rw-r--r-- 1 pi pi 3815 jun 30 19:18 /home/pi/.task/data.tar.gz
+
+- Desplegar el paquete con los datos:
+  # cd /home/pi/.task
+  # tar xvfz data.tar.gz
+  # rm -fr data.tar.gz
+
+- Prepración de las ubicaciones para el software:
+  # sudo mkdir /opt/alfred
+  # sudo mkdir /opt/alfred/bin
+  # sudo mkdir /opt/alfred/config
+  # sudo chown -R pi:pi /opt/alfred
+
+- Ubicar el script en la ubicación correspondiente:
+  # ls -rtl /opt/alfred/bin/alfred.py
+  -rw-r--r-- 1 pi pi 21629 jun 30 19:25 /opt/alfred/bin/alfred.py
+
+- Ubicar el fichero de configuración en la ubicación correspondiente:
+  # ls -rtl /opt/alfred/config/config.json
+  -rw-r--r-- 1 pi pi 204 jun 30 19:26 /opt/alfred/config/config.json
+
+- Prepración de las ubicaciones para los logs:
+  # sudo mkdir /var/log/alfred
+  # sudo chown pi:pi /var/log/alfred
+
+- Dar permisos de ejecución al script:
+  # sudo chmod 755 /opt/alfred/bin/alfred.py
+
+- Instalar dependiencias:
+  # sudo pip3.5 install python-telegram-bot --upgrade
+
+- Configuración del autoarranque. Creación de un servicio:
+  # sudo view /lib/systemd/system/alfred.service
+  [Unit]
+  Description=Alfred, the Telegram Bot
+  After=multi-user.target
+   
+  [Service]
+  Type=simple
+  ExecStart=/usr/bin/python3.5 /opt/alfred/bin/alfred.py
+  User=pi
+  Restart=on-failure
+  RestartSec=30
+  
+  [Install]
+  WantedBy=multi-user.target
+
+- Habilitar y arrancar servicio:
+  # sudo systemctl daemon-reload
+  # sudo systemctl status alfred
+  # sudo systemctl start alfred
+  # sudo systemctl status alfred
+  # sudo systemctl enable alfred
+
+- Configuración de Logrotate para controlar los logs generados:
+  # sudo view /etc/logrotate.d/alfred
+  /var/log/alfred/alfred.log {
+    rotate 60
+    daily
+    compress
+    delaycompress
+    copytruncate
+    missingok
+  }
