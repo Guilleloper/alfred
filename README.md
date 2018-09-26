@@ -8,3 +8,16 @@ It's necessary to create a Telegram Bot before deploying this code. -> https://c
 The platform is based in the technologies/componentes related below:
 
 1. Python -> The programming language used for the develop.
+
+Features:
+  - Restringed Access control.
+  - Basic Iteration: /start, /help
+  - Log Generation for recording the activity.
+  - Creation of a scoreboard. Is allowed to add, remove or list notes.
+  - Creation of a list of movies recomendations. Is allowed to add, remove or list films.
+  - Creation of a list of restaurants recomendations. Is allowed to add, remove or list restaurants.
+  - Settings via config file.
+  - Records in the log file for non authorized executions.
+
+
+
