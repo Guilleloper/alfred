@@ -17,32 +17,28 @@ import os
 
 # DEFINICIÓN DE FUNCIONES
 
+# Función para comprobar si el acceso está autorizado o no
+def authenticate_client(bot, client_id):
+    if str(client_id) in client_ids:
+        return True
+    else:
+        bot.send_message(chat_id=client_id,
+                         text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
+                              ":(")
+        logging.warning("Registrado acceso no autorizado del cliente " + str(client_id))
+        return False
+
+
 # Función opción /start
 def start(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Alfred a la escucha. ¿Puedo ayudarle con algo?.\n"
-                                                          "Si necesita ayuda use /help")
+                                              "Si necesita ayuda use /help")
 
 
 # Función opción /help
 def help(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Opciones disponibles:\n"
                                                           "  /notes\n"
                                                           "  /films\n"
@@ -53,15 +49,7 @@ def help(bot, update):
 
 # Función opción /notes
 def notes(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar notas:\n"
                                                           "  /notes_list\n"
                                                           "  /notes_add\n"
@@ -70,15 +58,7 @@ def notes(bot, update):
 
 # Función opción /notes_list
 def notes_list(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         task_list = subprocess.run(["task", "project:notes", "list"], stdout=subprocess.PIPE)
         if task_list.stdout.decode('utf-8') == "":
             bot.send_message(chat_id=update.message.chat_id, text="Notas actuales:\n"
@@ -89,15 +69,7 @@ def notes_list(bot, update):
 
 # Función opción /notes_add
 def notes_add(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         task_desc = update.message.text.replace("/notes_add ", "")
         if task_desc == "/notes_add":
             bot.send_message(chat_id=update.message.chat_id, text="Para añadir una nota debe proceder como se indica:\n"
@@ -110,15 +82,7 @@ def notes_add(bot, update):
 
 # Función opción /notes_remove
 def notes_remove(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         task_id = update.message.text.replace("/notes_remove ", "")
         if task_id == "/notes_remove":
             bot.send_message(chat_id=update.message.chat_id, text="Para eliminar una nota debe proceder como se indica:\n"
@@ -131,15 +95,7 @@ def notes_remove(bot, update):
 
 # Función opción /films
 def films(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar películas:\n"
                                                               "  /films_list\n"
                                                               "  /films_add\n"
@@ -148,15 +104,7 @@ def films(bot, update):
 
 # Función opción /films_list
 def films_list(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         task_list = subprocess.run(["task", "project:films", "list"], stdout=subprocess.PIPE)
         if task_list.stdout.decode('utf-8') == "":
             bot.send_message(chat_id=update.message.chat_id, text="Películas actuales:\n"
@@ -167,15 +115,7 @@ def films_list(bot, update):
 
 # Función opción /films_add
 def films_add(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         task_desc = update.message.text.replace("/films_add ", "")
         if task_desc == "/films_add":
             bot.send_message(chat_id=update.message.chat_id, text="Para añadir una película debe proceder como se indica:\n"
@@ -188,15 +128,7 @@ def films_add(bot, update):
 
 # Función opción /films_remove
 def films_remove(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         task_id = update.message.text.replace("/films_remove ", "")
         if task_id == "/films_remove":
             bot.send_message(chat_id=update.message.chat_id, text="Para eliminar una película debe proceder como se indica:\n"
@@ -209,15 +141,7 @@ def films_remove(bot, update):
 
 # Función opción /restaurants
 def restaurants(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar restaurantes:\n"
                                                               "  /restaurants_list\n"
                                                               "  /restaurants_add\n"
@@ -226,15 +150,7 @@ def restaurants(bot, update):
 
 # Función opción /restaurants_list
 def restaurants_list(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         task_list = subprocess.run(["task", "project:restaurants", "list"], stdout=subprocess.PIPE)
         if task_list.stdout.decode('utf-8') == "":
             bot.send_message(chat_id=update.message.chat_id, text="Restaurantes actuales:\n"
@@ -245,15 +161,7 @@ def restaurants_list(bot, update):
 
 # Función opción /restaurants_add
 def restaurants_add(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         task_desc = update.message.text.replace("/re"
                                                 "staurants_add ", "")
         if task_desc == "/restaurants_add":
@@ -267,15 +175,7 @@ def restaurants_add(bot, update):
 
 # Función opción /restaurants_remove
 def restaurants_remove(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         task_id = update.message.text.replace("/restaurants_remove ", "")
         if task_id == "/restaurants_remove":
             bot.send_message(chat_id=update.message.chat_id, text="Para eliminar un restaurante debe proceder como se indica:\n"
@@ -288,15 +188,7 @@ def restaurants_remove(bot, update):
 
 # Función para comandos no conocidos:
 def unknown(bot, update):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    client_ids = config['DEFAULT']['CLIENT_IDS']
-    if update.message.chat_id in client_ids:
-        bot.send_message(chat_id=update.message.chat_id, text="Lo siento, pero no estás autorizado para interactuar conmigo. Aún no nos han presentado.\n"
-                                                              ":(")
-        logging.warning("Registrado acceso no autorizado del cliente " + str(update.message.chat_id))
-    else:
+    if authenticate_client(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Lo siento, no conozco esa opción.\n"
                                                           "Si necesita ayuda use /help")
 
@@ -319,6 +211,8 @@ def main():
     log_level = config['DEFAULT']['LOG_LEVEL']
     log_file = config['DEFAULT']['LOG_FILE']
     bot_token = config['DEFAULT']['BOT_TOKEN']
+    global client_ids
+    client_ids = config['DEFAULT']['CLIENT_IDS']
 
     # Configurar logger a fichero:
     logging.basicConfig(level=getattr(logging, log_level),
