@@ -186,14 +186,14 @@ def restaurants_remove(bot, update):
             logging.info("Alfred eliminó el restaurante con el ID " + task_id + " a petición del client ID " + str(update.message.chat_id))
 
 
-# Función para comandos no conocidos:
+# Función para comandos no conocidos
 def unknown(bot, update):
     if authenticate_client(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Lo siento, no conozco esa opción.\n"
                                                           "Si necesita ayuda use /help")
 
 
-# Función para los errores internos:
+# Función para los errores internos
 def error(bot, update, error):
     logging.warning('Update "%s" caused error "%s"', update, error)
 
@@ -201,108 +201,110 @@ def error(bot, update, error):
 # PROGRAMA PRINCIPAL
 
 def main():
-    # Inicio:
-    print()
 
-    # Carga de fichero de configuración:
+    # Carga de fichero de configuración
     script_path = os.path.dirname(sys.argv[0])
     with open(script_path + '/../config/config.json', 'r') as f:
         config = json.load(f)
-    log_level = config['DEFAULT']['LOG_LEVEL']
-    log_file = config['DEFAULT']['LOG_FILE']
+    log_file = config['DEFAULT']['ALFRED_LOG_FILE']
+    log_level = config['DEFAULT']['ALFRED_LOG_LEVEL']
     bot_token = config['DEFAULT']['BOT_TOKEN']
     global client_ids
     client_ids = config['DEFAULT']['CLIENT_IDS']
 
-    # Configurar logger a fichero:
+    # Configurar logger a fichero
     logging.basicConfig(level=getattr(logging, log_level),
-                        format="[%(asctime)s] [%(levelname)s] - %(message)s",
+                        format="[%(asctime)s] [%(levelname)s] - [Alfred] - %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S",
                         filename=log_file,
                         filemode='a')
 
-    # Configurar logger a stdout:
+    # Configurar logger a stdout
     console = logging.StreamHandler()
     console.setLevel(getattr(logging, log_level))
-    console.setFormatter(logging.Formatter("[%(levelname)s] - %(message)s"))
+    console.setFormatter(logging.Formatter("[%(levelname)s] - [Alfred] - %(message)s"))
     logging.getLogger('').addHandler(console)
 
+    # Inicio
     logging.info("Inicio del programa")
 
-    # Crear Updater:
+    # Crear el EventHandler para el bot
     updater = Updater(token=bot_token)
 
-    # Generar el Dispatcher para registrar manejadores:
+    # Obtener el Dispatcher para registrar los Handlers
     dispatcher = updater.dispatcher
 
-    # Añadir al Dispatcher un manejador para el comando /start:
+    # Añadir al Dispatcher un Handler para el comando /start
     start_handler = CommandHandler('start', start)
     dispatcher.add_handler(start_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /help:
+    # Añadir al Dispatcher un Handler para el comando /help
     help_handler = CommandHandler('help', help)
     dispatcher.add_handler(help_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /notes:
+    # Añadir al Dispatcher un Handler para el comando /notes
     notes_handler = CommandHandler('notes', notes)
     dispatcher.add_handler(notes_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /notes_list:
+    # Añadir al Dispatcher un Handler para el comando /notes_list
     notes_list_handler = CommandHandler('notes_list', notes_list)
     dispatcher.add_handler(notes_list_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /notes_add:
+    # Añadir al Dispatcher un Handler para el comando /notes_add
     notes_add_handler = CommandHandler('notes_add', notes_add)
     dispatcher.add_handler(notes_add_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /notes_remove:
+    # Añadir al Dispatcher un Handler para el comando /notes_remove
     notes_remove_handler = CommandHandler('notes_remove', notes_remove)
     dispatcher.add_handler(notes_remove_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /films:
+    # Añadir al Dispatcher un Handler para el comando /films
     films_handler = CommandHandler('films', films)
     dispatcher.add_handler(films_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /films_list:
+    # Añadir al Dispatcher un Handler para el comando /films_list
     films_list_handler = CommandHandler('films_list', films_list)
     dispatcher.add_handler(films_list_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /films_add:
+    # Añadir al Dispatcher un Handler para el comando /films_add
     films_add_handler = CommandHandler('films_add', films_add)
     dispatcher.add_handler(films_add_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /films_remove:
+    # Añadir al Dispatcher un Handler para el comando /films_remove
     films_remove_handler = CommandHandler('films_remove', films_remove)
     dispatcher.add_handler(films_remove_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /restaurants:
+    # Añadir al Dispatcher un Handler para el comando /restaurants
     restaurants_handler = CommandHandler('restaurants', restaurants)
     dispatcher.add_handler(restaurants_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /restaurants_list:
+    # Añadir al Dispatcher un Handler para el comando /restaurants_list
     restaurants_list_handler = CommandHandler('restaurants_list', restaurants_list)
     dispatcher.add_handler(restaurants_list_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /restaurants_add:
+    # Añadir al Dispatcher un Handler para el comando /restaurants_add
     restaurants_add_handler = CommandHandler('restaurants_add', restaurants_add)
     dispatcher.add_handler(restaurants_add_handler)
 
-    # Añadir al Dispatcher un manejador para el comando /restaurants_remove:
+    # Añadir al Dispatcher un Handler para el comando /restaurants_remove
     restaurants_remove_handler = CommandHandler('restaurants_remove', restaurants_remove)
     dispatcher.add_handler(restaurants_remove_handler)
 
-    # Añadir al Dispatcher un manejador para los comandos desconocidos:
+    # Añadir al Dispatcher un Handler para los comandos desconocidos
     unknown_handler = MessageHandler(Filters.command, unknown)
     dispatcher.add_handler(unknown_handler)
 
-    # Registrar todos los errores:
+    # Registrar todos los errores
     dispatcher.add_error_handler(error)
 
-    # Arrancar Updater:
+    # Arrancar Updater
     updater.start_polling()
     logging.info("Alfred online")
     updater.idle()
+    logging.info("Alfred offline")
 
+    # Fin
+    logging.info("Fin del programa")
 
 if __name__ == '__main__':
     main()

@@ -1,7 +1,10 @@
 {
   "DEFAULT": {
-    "LOG_FILE": "/var/log/alfred/alfred.log",
-    "LOG_LEVEL": "INFO",
+    "ALFRED_LOG_FILE": "/var/log/alfred/alfred.log",
+    "ALFRED_LOG_LEVEL": "INFO",
+    "EVENTS_LOG_FILE": "/var/log/alfred/alfred.log",
+    "EVENTS_LOG_LEVEL": "INFO",
+    "EVENTS_DB_FILE": "/../data/events.json",
     "BOT_TOKEN": "¿?",
     "CLIENT_IDS": ["¿?", "¿?"]
   }

@@ -16,8 +16,10 @@ Features:
   - Creation of a scoreboard. Is allowed to add, remove or list notes.
   - Creation of a list of movies recomendations. Is allowed to add, remove or list films.
   - Creation of a list of restaurants recomendations. Is allowed to add, remove or list restaurants.
-  - Settings via config file.
+  - Settings by config file.
   - Records in the log file for non authorized executions.
 
-
-
+(NEW) Events module:
+  - Bot sends event notifications.
+  - Periodic execution by cronfile.
+  - Events management by config file.
