@@ -52,10 +52,10 @@ def main():
     event_hits = 0
     with open(script_path + events_file, 'r') as f:
         events = json.load(f)
-    for event_id in events['events']:
-        title = events['events'][event_id]['title']
-        event_date = events['events'][event_id]['event_date']
-        reminder_date = events['events'][event_id]['reminder_date']
+    for event in events['events']:
+        title = event['title']
+        event_date = event['event_date']
+        reminder_date = event['reminder_date']
         # Comprobacion de si se cumple la condicion para enviar recordatorio
         reminder_date_tstmp = time.mktime(datetime.datetime.strptime(reminder_date, "%d.%m.%Y").timetuple())
         if actual_date_tstmp >= reminder_date_tstmp:

@@ -5,6 +5,7 @@
     "EVENTS_LOG_FILE": "/var/log/alfred/alfred.log",
     "EVENTS_LOG_LEVEL": "INFO",
     "EVENTS_DB_FILE": "/../data/events.json",
+    "EVENTS_DB_TMP_FILE": "/../data/events.tmp",
     "BOT_TOKEN": "¿?",
     "CLIENT_IDS": ["¿?", "¿?"]
   }

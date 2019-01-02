@@ -13,12 +13,13 @@ import subprocess
 import json
 import sys
 import os
+from shutil import copyfile
 
 
 # DEFINICIÓN DE FUNCIONES
 
 # Función para comprobar si el acceso está autorizado o no
-def authenticate_client(bot, client_id):
+def client_authentication(bot, client_id):
     if str(client_id) in client_ids:
         return True
     else:
@@ -29,27 +30,58 @@ def authenticate_client(bot, client_id):
         return False
 
 
+# Función para ordenar el fichero de eventos
+def events_sort():
+    script_path = os.path.dirname(sys.argv[0])
+    with open(script_path + events_file, 'r') as f1:
+        events = json.load(f1)
+    events_new = {}
+    events_new['events'] = []
+    event_id_new = 1
+    for event in events['events']:
+        title = event['title']
+        event_date = event['event_date']
+        reminder_date = event['reminder_date']
+        events_new['events'].append({
+            'id': event_id_new,
+            'title': title,
+            'event_date': event_date,
+            'reminder_date': reminder_date
+        })
+        event_id_new += 1
+
+    # Comprobar si ha habido cambios en la ordenacion de las tareas y reordenar si aplica
+    if events != events_new:
+        with open(script_path + events_tmp_file, 'w+') as f2:
+            json.dump(events_new, f2, indent=2)
+        copyfile(script_path + events_tmp_file, script_path + events_file)
+        os.remove(script_path + events_tmp_file)
+        return True
+    else:
+        return False
+
+
 # Función opción /start
 def start(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Alfred a la escucha. ¿Puedo ayudarle con algo?.\n"
                                               "Si necesita ayuda use /help")
 
 
 # Función opción /help
 def help(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Opciones disponibles:\n"
-                                                          "  /notes\n"
+                                                          "  /events\n"
                                                           "  /films\n"
-                                                          "  /restaurants\n"
-                                                          "  /recipes (próximamente)\n"
-                                                          "  /calendar (próximamente)\n")
+                                                          "  /notes\n"
+                                                          "  /recipes (coming soon)\n"
+                                                          "  /restaurants\n")
 
 
 # Función opción /notes
 def notes(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar notas:\n"
                                                           "  /notes_list\n"
                                                           "  /notes_add\n"
@@ -58,7 +90,7 @@ def notes(bot, update):
 
 # Función opción /notes_list
 def notes_list(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         task_list = subprocess.run(["task", "project:notes", "list"], stdout=subprocess.PIPE)
         if task_list.stdout.decode('utf-8') == "":
             bot.send_message(chat_id=update.message.chat_id, text="Notas actuales:\n"
@@ -69,7 +101,7 @@ def notes_list(bot, update):
 
 # Función opción /notes_add
 def notes_add(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         task_desc = update.message.text.replace("/notes_add ", "")
         if task_desc == "/notes_add":
             bot.send_message(chat_id=update.message.chat_id, text="Para añadir una nota debe proceder como se indica:\n"
@@ -82,7 +114,7 @@ def notes_add(bot, update):
 
 # Función opción /notes_remove
 def notes_remove(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         task_id = update.message.text.replace("/notes_remove ", "")
         if task_id == "/notes_remove":
             bot.send_message(chat_id=update.message.chat_id, text="Para eliminar una nota debe proceder como se indica:\n"
@@ -95,7 +127,7 @@ def notes_remove(bot, update):
 
 # Función opción /films
 def films(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar películas:\n"
                                                               "  /films_list\n"
                                                               "  /films_add\n"
@@ -104,7 +136,7 @@ def films(bot, update):
 
 # Función opción /films_list
 def films_list(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         task_list = subprocess.run(["task", "project:films", "list"], stdout=subprocess.PIPE)
         if task_list.stdout.decode('utf-8') == "":
             bot.send_message(chat_id=update.message.chat_id, text="Películas actuales:\n"
@@ -115,7 +147,7 @@ def films_list(bot, update):
 
 # Función opción /films_add
 def films_add(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         task_desc = update.message.text.replace("/films_add ", "")
         if task_desc == "/films_add":
             bot.send_message(chat_id=update.message.chat_id, text="Para añadir una película debe proceder como se indica:\n"
@@ -128,7 +160,7 @@ def films_add(bot, update):
 
 # Función opción /films_remove
 def films_remove(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         task_id = update.message.text.replace("/films_remove ", "")
         if task_id == "/films_remove":
             bot.send_message(chat_id=update.message.chat_id, text="Para eliminar una película debe proceder como se indica:\n"
@@ -141,7 +173,7 @@ def films_remove(bot, update):
 
 # Función opción /restaurants
 def restaurants(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar restaurantes:\n"
                                                               "  /restaurants_list\n"
                                                               "  /restaurants_add\n"
@@ -150,7 +182,7 @@ def restaurants(bot, update):
 
 # Función opción /restaurants_list
 def restaurants_list(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         task_list = subprocess.run(["task", "project:restaurants", "list"], stdout=subprocess.PIPE)
         if task_list.stdout.decode('utf-8') == "":
             bot.send_message(chat_id=update.message.chat_id, text="Restaurantes actuales:\n"
@@ -161,7 +193,7 @@ def restaurants_list(bot, update):
 
 # Función opción /restaurants_add
 def restaurants_add(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         task_desc = update.message.text.replace("/re"
                                                 "staurants_add ", "")
         if task_desc == "/restaurants_add":
@@ -175,7 +207,7 @@ def restaurants_add(bot, update):
 
 # Función opción /restaurants_remove
 def restaurants_remove(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         task_id = update.message.text.replace("/restaurants_remove ", "")
         if task_id == "/restaurants_remove":
             bot.send_message(chat_id=update.message.chat_id, text="Para eliminar un restaurante debe proceder como se indica:\n"
@@ -186,9 +218,43 @@ def restaurants_remove(bot, update):
             logging.info("Alfred eliminó el restaurante con el ID " + task_id + " a petición del client ID " + str(update.message.chat_id))
 
 
+# Función opción /events
+def events(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        bot.send_message(chat_id=update.message.chat_id, text="Gestionar eventos y recordatorios:\n"
+                                                              "  /events_list\n"
+                                                              "  /events_add (coming soon)\n"
+                                                              "  /events_remove (coming soon)\n")
+
+
+# Función opción /events_list
+def events_list(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        if events_sort():
+            bot.send_message(chat_id=update.message.chat_id, text="Se ha reordenado la lista de eventos")
+            logging.info("Lista de eventos reordenada")
+        script_path = os.path.dirname(sys.argv[0])
+        with open(script_path + events_file, 'r') as f:
+            events = json.load(f)
+        if events == "":
+            bot.send_message(chat_id=update.message.chat_id, text="Eventos actuales:\n"
+                                                                  "(vacío)")
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text="Eventos actuales:\n")
+            for event in events['events']:
+                id = event['id']
+                title = event['title']
+                event_date = event['event_date']
+                reminder_date = event['reminder_date']
+                bot.send_message(chat_id=update.message.chat_id, text="  ID: " + str(id) + "\n"
+                                                                      "  Evento: " + title + "\n"
+                                                                      "  Fecha: " + event_date + "\n"
+                                                                      "  Avisar a partir de: " + reminder_date + "\n")
+
+
 # Función para comandos no conocidos
 def unknown(bot, update):
-    if authenticate_client(bot, update.message.chat_id):
+    if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Lo siento, no conozco esa opción.\n"
                                                           "Si necesita ayuda use /help")
 
@@ -211,6 +277,10 @@ def main():
     bot_token = config['DEFAULT']['BOT_TOKEN']
     global client_ids
     client_ids = config['DEFAULT']['CLIENT_IDS']
+    global events_file
+    events_file = config['DEFAULT']['EVENTS_DB_FILE']
+    global events_tmp_file
+    events_tmp_file = config['DEFAULT']['EVENTS_DB_TMP_FILE']
 
     # Configurar logger a fichero
     logging.basicConfig(level=getattr(logging, log_level),
@@ -289,6 +359,16 @@ def main():
     # Añadir al Dispatcher un Handler para el comando /restaurants_remove
     restaurants_remove_handler = CommandHandler('restaurants_remove', restaurants_remove)
     dispatcher.add_handler(restaurants_remove_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /events
+    events_handler = CommandHandler('events', events)
+    dispatcher.add_handler(events_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /events_list
+    events_list_handler = CommandHandler('events_list', events_list)
+    dispatcher.add_handler(events_list_handler)
+
+
 
     # Añadir al Dispatcher un Handler para los comandos desconocidos
     unknown_handler = MessageHandler(Filters.command, unknown)
