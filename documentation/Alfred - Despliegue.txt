@@ -57,6 +57,10 @@
   # view /opt/alfred/config/config.json
   ...
 
+- Añadir los eventos/recordatorios que correspondan, editando su correspondiente fichero:
+  # view /opt/alfred/data/events.json
+  ...
+
 - Configuración del autoarranque. Creación de un servicio:
   # sudo view /lib/systemd/system/alfred.service
   [Unit]
