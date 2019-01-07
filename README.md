@@ -22,4 +22,4 @@ Features:
 (NEW) Events module:
   - Bot sends event notifications.
   - Periodic execution by cronfile.
-  - Events management by config file.
+  - Events management by Bot's commands.
