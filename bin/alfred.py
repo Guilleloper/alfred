@@ -61,6 +61,17 @@ def events_sort():
         return False
 
 
+# Función para comprobar si existe un evento con un ID determinado
+def event_id_hit(event_id):
+    script_path = os.path.dirname(sys.argv[0])
+    with open(script_path + events_file, 'r') as f1:
+        events = json.load(f1)
+    for event in events['events']:
+        if int(event_id) == event['id']:
+            return True
+    return False
+
+
 # Función opción /start
 def start(bot, update):
     if client_authentication(bot, update.message.chat_id):
@@ -194,8 +205,7 @@ def restaurants_list(bot, update):
 # Función opción /restaurants_add
 def restaurants_add(bot, update):
     if client_authentication(bot, update.message.chat_id):
-        task_desc = update.message.text.replace("/re"
-                                                "staurants_add ", "")
+        task_desc = update.message.text.replace("/restaurants_add ", "")
         if task_desc == "/restaurants_add":
             bot.send_message(chat_id=update.message.chat_id, text="Para añadir un restaurante debe proceder como se indica:\n"
                                                                   "  /restaurants_add <descripción>")
@@ -223,8 +233,9 @@ def events(bot, update):
     if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar eventos y recordatorios:\n"
                                                               "  /events_list\n"
-                                                              "  /events_add (coming soon)\n"
-                                                              "  /events_remove (coming soon)\n")
+                                                              "  /events_add\n"
+                                                              "  /events_edit\n"
+                                                              "  /events_remove\n")
 
 
 # Función opción /events_list
@@ -252,6 +263,219 @@ def events_list(bot, update):
                                                                       "  Avisar a partir de: " + reminder_date + "\n")
 
 
+# Función opción /events_add
+def events_add(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        logging.debug("Realizando comprobaciones previas antes de crear un evento")
+        params = update.message.text.replace("/events_add ", "")
+        if params == "/events_add":
+            bot.send_message(chat_id=update.message.chat_id, text="Para añadir un evento debe proceder como se indica:\n"
+                                                                  "  /events_add <evento> <fecha de evento> <fecha de recordatorio>\n"
+                                                                  "  (las fechas en formato DD.MM.AAAA)")
+            return False
+        if len(params.split(" ")) < 3:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="Sintanxis incorrecta. Para añadir un evento debe proceder como se indica:\n"
+                                  "  /events_add <evento> <fecha de evento> <fecha de recordatorio>\n"
+                                  "  (las fechas en formato DD.MM.AAAA)")
+            logging.warning("Sintaxis incorrecta al intentar crear un evento a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        reminder_date_new = params[-10:]
+        event_date_new = params[-21:-11]
+        title_new = params[:-22]
+        if len(event_date_new) != 10:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="La fecha de evento debe ir en formato DD.MM.AAAA")
+            logging.warning("Se ha introducido mal la fecha de evento al intentar crear un evento a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        if len(event_date_new.split(".")) != 3:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="La fecha de evento debe ir en formato DD.MM.AAAA")
+            logging.warning("Se ha introducido mal la fecha de evento al intentar crear un evento a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        if len(reminder_date_new) != 10:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="La fecha de recordatorio debe ir en formato DD.MM.AAAA")
+            logging.warning("Se ha introducido mal la fecha de recordatorio al intentar crear un evento a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        if len(reminder_date_new.split(".")) != 3:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="La fecha de recordatorio debe ir en formato DD.MM.AAAA")
+            logging.warning("Se ha introducido mal la fecha de recordatorio al intentar crear un evento a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        logging.debug("Creando un nuevo evento")
+        script_path = os.path.dirname(sys.argv[0])
+        with open(script_path + events_file, 'r') as f1:
+            events = json.load(f1)
+        events_new = {}
+        events_new['events'] = []
+        for event in events['events']:
+            id = event['id']
+            title = event['title']
+            event_date = event['event_date']
+            reminder_date = event['reminder_date']
+            events_new['events'].append({
+                'id': id,
+                'title': title,
+                'event_date': event_date,
+                'reminder_date': reminder_date
+            })
+        id_new = id + 1
+        events_new['events'].append({
+            'id': id_new,
+            'title': title_new,
+            'event_date': event_date_new,
+            'reminder_date': reminder_date_new
+        })
+        with open(script_path + events_tmp_file, 'w+') as f2:
+            json.dump(events_new, f2, indent=2)
+        copyfile(script_path + events_tmp_file, script_path + events_file)
+        os.remove(script_path + events_tmp_file)
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Se ha creado el evento " + title_new + " con el ID " + str(id_new))
+        logging.info("Alfred creó el evento " + title_new + " con el ID " + str(id_new) + " a petición del client ID " + str(
+            update.message.chat_id))
+        return True
+
+
+# Función opción /events_edit
+def events_edit(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        logging.debug("Realizando comprobaciones previas antes de modificar un evento")
+        params = update.message.text.replace("/events_edit ", "")
+        if params == "/events_edit":
+            bot.send_message(chat_id=update.message.chat_id, text="Para modificar un evento debe proceder como se indica:\n"
+                                                                  "  /events_edit <ID> <nueva fecha de evento> <nueva fecha de recordatorio>\n"
+                                                                  "  (las fechas en formato DD.MM.AAAA)")
+            return False
+        if len(params.split(" ")) < 3:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="Sintanxis incorrecta. Para modificar un evento debe proceder como se indica:\n"
+                                  "  /events_edit <ID> <nueva fecha de evento> <nueva fecha de recordatorio>\n"
+                                  "  (las fechas en formato DD.MM.AAAA)")
+            logging.warning("Sintaxis incorrecta al intentar modificar un evento")
+            return False
+        reminder_date_new = params[-10:]
+        event_date_new = params[-21:-11]
+        id = params[:-22]
+        if not event_id_hit(id):
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="No existe ningún evento con el identificador " + id)
+            logging.warning("Se ha intentado modificar un evento con un identificador no válido a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        logging.debug("Identificador de evento encontrado: " + id)
+        if len(event_date_new) != 10:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="La nueva fecha de evento debe ir en formato DD.MM.AAAA")
+            logging.warning("Se ha introducido mal la nueva fecha de evento al intentar modificar un evento a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        if len(event_date_new.split(".")) != 3:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="La nueva fecha de evento debe ir en formato DD.MM.AAAA")
+            logging.warning("Se ha introducido mal la nueva fecha de evento al intentar modificar un evento a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        if len(reminder_date_new) != 10:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="La nueva fecha de recordatorio debe ir en formato DD.MM.AAAA")
+            logging.warning("Se ha introducido mal la nueva fecha de recordatorio al intentar modificar un evento a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        if len(reminder_date_new.split(".")) != 3:
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="La nueva fecha de recordatorio debe ir en formato DD.MM.AAAA")
+            logging.warning("Se ha introducido mal la nueva fecha de recordatorio al intentar modificar un evento a petición del cliente ID " + str(
+            update.message.chat_id))
+            return False
+        logging.debug("Modificando el evento con ID " + id)
+        script_path = os.path.dirname(sys.argv[0])
+        with open(script_path + events_file, 'r') as f1:
+            events = json.load(f1)
+        events_new = {}
+        events_new['events'] = []
+        for event in events['events']:
+            event_id = event['id']
+            title = event['title']
+            if int(id) != event_id:
+                event_date = event['event_date']
+                reminder_date = event['reminder_date']
+            else:
+                event_date = event_date_new
+                reminder_date = reminder_date_new
+            events_new['events'].append({
+                'event_id': event_id,
+                'title': title,
+                'event_date': event_date,
+                'reminder_date': reminder_date
+            })
+        with open(script_path + events_tmp_file, 'w+') as f2:
+            json.dump(events_new, f2, indent=2)
+        copyfile(script_path + events_tmp_file, script_path + events_file)
+        os.remove(script_path + events_tmp_file)
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Se ha modificado el evento con el ID " + str(id))
+        logging.info(
+            "Alfred modificó el evento con el ID " + str(id) + " a petición del client ID " + str(
+                update.message.chat_id))
+        return True
+
+
+# Función opción /events_remove
+def events_remove(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        event_id = update.message.text.replace("/events_remove ", "")
+        if event_id == "/events_remove":
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="Para eliminar un evento debe proceder como se indica:\n"
+                                  "  /events_remove <ID>")
+            return False
+        logging.debug("Comprobando identificador de evento antes de borrarlo")
+        if not event_id_hit(event_id):
+            bot.send_message(chat_id=update.message.chat_id,
+                             text="No existe ningún evento con el identificador " + event_id)
+            logging.warning("Se ha intentado borrar un evento con un identificador no válido a petición del client ID " + str(
+                update.message.chat_id))
+            return False
+        logging.debug("Identificador de evento encontrado: " + event_id)
+        logging.debug("Borrando el evento con ID " + event_id)
+        script_path = os.path.dirname(sys.argv[0])
+        with open(script_path + events_file, 'r') as f1:
+            events = json.load(f1)
+        events_new = {}
+        events_new['events'] = []
+        for event in events['events']:
+            if int(event_id) != event['id']:
+                id = event['id']
+                title = event['title']
+                event_date = event['event_date']
+                reminder_date = event['reminder_date']
+                events_new['events'].append({
+                    'id': id,
+                    'title': title,
+                    'event_date': event_date,
+                    'reminder_date': reminder_date
+                })
+        with open(script_path + events_tmp_file, 'w+') as f2:
+            json.dump(events_new, f2, indent=2)
+        copyfile(script_path + events_tmp_file, script_path + events_file)
+        os.remove(script_path + events_tmp_file)
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Se ha eliminado el evento con el ID " + event_id)
+        logging.info("Alfred eliminó el evento el ID " + event_id + " a petición del client ID " + str(
+            update.message.chat_id))
+        if events_sort():
+            bot.send_message(chat_id=update.message.chat_id, text="Se ha reordenado la lista de eventos")
+            logging.info("Lista de eventos reordenada")
+        return True
+
+
 # Función para comandos no conocidos
 def unknown(bot, update):
     if client_authentication(bot, update.message.chat_id):
@@ -260,7 +484,7 @@ def unknown(bot, update):
 
 
 # Función para los errores internos
-def error(bot, update, error):
+def error(update, error):
     logging.warning('Update "%s" caused error "%s"', update, error)
 
 
@@ -368,7 +592,17 @@ def main():
     events_list_handler = CommandHandler('events_list', events_list)
     dispatcher.add_handler(events_list_handler)
 
+    # Añadir al Dispatcher un Handler para el comando /events_add
+    events_add_handler = CommandHandler('events_add', events_add)
+    dispatcher.add_handler(events_add_handler)
 
+    # Añadir al Dispatcher un Handler para el comando /events_edit
+    events_edit_handler = CommandHandler('events_edit', events_edit)
+    dispatcher.add_handler(events_edit_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /events_remove
+    events_remove_handler = CommandHandler('events_remove', events_remove)
+    dispatcher.add_handler(events_remove_handler)
 
     # Añadir al Dispatcher un Handler para los comandos desconocidos
     unknown_handler = MessageHandler(Filters.command, unknown)
