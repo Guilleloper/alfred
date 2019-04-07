@@ -13,7 +13,8 @@ import subprocess
 import json
 import sys
 import os
-from shutil import copyfile
+from modules import mod_birthdays
+from modules import mod_events
 
 
 # DEFINICIÓN DE FUNCIONES
@@ -30,48 +31,6 @@ def client_authentication(bot, client_id):
         return False
 
 
-# Función para ordenar el fichero de eventos
-def events_sort():
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + events_file, 'r') as f1:
-        events = json.load(f1)
-    events_new = {}
-    events_new['events'] = []
-    event_id_new = 1
-    for event in events['events']:
-        title = event['title']
-        event_date = event['event_date']
-        reminder_date = event['reminder_date']
-        events_new['events'].append({
-            'id': event_id_new,
-            'title': title,
-            'event_date': event_date,
-            'reminder_date': reminder_date
-        })
-        event_id_new += 1
-
-    # Comprobar si ha habido cambios en la ordenacion de las tareas y reordenar si aplica
-    if events != events_new:
-        with open(script_path + events_tmp_file, 'w+') as f2:
-            json.dump(events_new, f2, indent=2)
-        copyfile(script_path + events_tmp_file, script_path + events_file)
-        os.remove(script_path + events_tmp_file)
-        return True
-    else:
-        return False
-
-
-# Función para comprobar si existe un evento con un ID determinado
-def event_id_hit(event_id):
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + events_file, 'r') as f1:
-        events = json.load(f1)
-    for event in events['events']:
-        if int(event_id) == event['id']:
-            return True
-    return False
-
-
 # Función opción /start
 def start(bot, update):
     if client_authentication(bot, update.message.chat_id):
@@ -83,6 +42,8 @@ def start(bot, update):
 def help(bot, update):
     if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Opciones disponibles:\n"
+                                                          "  /amazon (coming soon)\n"
+                                                          "  /birthdays\n"
                                                           "  /events\n"
                                                           "  /films\n"
                                                           "  /notes\n"
@@ -90,50 +51,87 @@ def help(bot, update):
                                                           "  /restaurants\n")
 
 
-# Función opción /notes
-def notes(bot, update):
+# Función opción /amazon
+def amazon(bot, update):
     if client_authentication(bot, update.message.chat_id):
-        bot.send_message(chat_id=update.message.chat_id, text="Gestionar notas:\n"
-                                                          "  /notes_list\n"
-                                                          "  /notes_add\n"
-                                                          "  /notes_remove\n")
+        bot.send_message(chat_id=update.message.chat_id, text="Gestionar seguimiento de productos de Amazon:\n"
+                                                              "  /amazon_list (coming soon)\n"
+                                                              "  /amazon_add (coming soon)\n"
+                                                              "  /amazon_remove (coming soon)\n")
 
 
-# Función opción /notes_list
-def notes_list(bot, update):
+# Funciín opción /amazon_list
+def amazon_list(bot, update):
     if client_authentication(bot, update.message.chat_id):
-        task_list = subprocess.run(["task", "project:notes", "list"], stdout=subprocess.PIPE)
-        if task_list.stdout.decode('utf-8') == "":
-            bot.send_message(chat_id=update.message.chat_id, text="Notas actuales:\n"
-                                                                  "(vacío)")
-        else:
-            bot.send_message(chat_id=update.message.chat_id, text="Notas actuales:\n" + task_list.stdout.decode('utf-8'))
+        amazon = AmazonAPI()
 
 
-# Función opción /notes_add
-def notes_add(bot, update):
+# Función opicón /birthdays
+def birthdays(bot, update):
     if client_authentication(bot, update.message.chat_id):
-        task_desc = update.message.text.replace("/notes_add ", "")
-        if task_desc == "/notes_add":
-            bot.send_message(chat_id=update.message.chat_id, text="Para añadir una nota debe proceder como se indica:\n"
-                                                                  "  /notes_add <descripción>")
-        else:
-            subprocess.run(["task", "project:notes", "add", task_desc], stdout=subprocess.PIPE)
-            bot.send_message(chat_id=update.message.chat_id, text="Se ha añadido la siguiente nota:\n" + task_desc)
-            logging.info("Alfred añadió la nota " + task_desc + " a petición del client ID " + str(update.message.chat_id))
+        bot.send_message(chat_id=update.message.chat_id, text="Gestionar cumpleaños:\n"
+                                                              "  /birthdays_list\n"
+                                                              "  /birthdays_add\n"
+                                                              "  /birthdays_remove\n")
 
 
-# Función opción /notes_remove
-def notes_remove(bot, update):
+# Función opción /birtdhays_list
+def birthdays_list(bot, update):
     if client_authentication(bot, update.message.chat_id):
-        task_id = update.message.text.replace("/notes_remove ", "")
-        if task_id == "/notes_remove":
-            bot.send_message(chat_id=update.message.chat_id, text="Para eliminar una nota debe proceder como se indica:\n"
-                                                                  "  /notes_remove <ID>")
-        else:
-            subprocess.run(["task", "project:notes", task_id, "done"], stdout=subprocess.PIPE)
-            bot.send_message(chat_id=update.message.chat_id, text="Se ha eliminado la siguiente nota:\n" + task_id)
-            logging.info("Alfred eliminó la nota con el ID " + task_id + " a petición del client ID " + str(update.message.chat_id))
+        mod_birthdays.sort(bot, update)
+        mod_birthdays.list(bot, update)
+
+
+# Función opción /birthdays_add
+def birthdays_add(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        if mod_birthdays.add(bot, update):
+            mod_birthdays.sort(bot, update)
+
+
+# Función opción /events_remove
+def birthdays_remove(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        if mod_birthdays.remove(bot, update):
+            mod_birthdays.sort(bot, update)
+
+
+# Función opción /events
+def events(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        bot.send_message(chat_id=update.message.chat_id, text="Gestionar eventos y recordatorios:\n"
+                                                              "  /events_list\n"
+                                                              "  /events_add\n"
+                                                              "  /events_edit\n"
+                                                              "  /events_remove\n")
+
+
+# Función opción /events_list
+def events_list(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        mod_events.sort(bot, update)
+        mod_events.list(bot, update)
+
+
+# Función opción /events_add
+def events_add(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        if mod_events.add(bot, update):
+            mod_events.sort(bot, update)
+
+
+# Función opción /events_edit
+def events_edit(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        if mod_events.edit(bot, update):
+            mod_events.sort(bot, update)
+
+
+# Función opción /events_remove
+def events_remove(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        if mod_events.remove(bot, update):
+            mod_events.sort(bot, update)
 
 
 # Función opción /films
@@ -182,6 +180,52 @@ def films_remove(bot, update):
             logging.info("Alfred eliminó la película con el ID " + task_id + " a petición del client ID " + str(update.message.chat_id))
 
 
+# Función opción /notes
+def notes(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        bot.send_message(chat_id=update.message.chat_id, text="Gestionar notas:\n"
+                                                          "  /notes_list\n"
+                                                          "  /notes_add\n"
+                                                          "  /notes_remove\n")
+
+
+# Función opción /notes_list
+def notes_list(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        task_list = subprocess.run(["task", "project:notes", "list"], stdout=subprocess.PIPE)
+        if task_list.stdout.decode('utf-8') == "":
+            bot.send_message(chat_id=update.message.chat_id, text="Notas actuales:\n"
+                                                                  "(vacío)")
+        else:
+            bot.send_message(chat_id=update.message.chat_id, text="Notas actuales:\n" + task_list.stdout.decode('utf-8'))
+
+
+# Función opción /notes_add
+def notes_add(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        task_desc = update.message.text.replace("/notes_add ", "")
+        if task_desc == "/notes_add":
+            bot.send_message(chat_id=update.message.chat_id, text="Para añadir una nota debe proceder como se indica:\n"
+                                                                  "  /notes_add <descripción>")
+        else:
+            subprocess.run(["task", "project:notes", "add", task_desc], stdout=subprocess.PIPE)
+            bot.send_message(chat_id=update.message.chat_id, text="Se ha añadido la siguiente nota:\n" + task_desc)
+            logging.info("Alfred añadió la nota " + task_desc + " a petición del client ID " + str(update.message.chat_id))
+
+
+# Función opción /notes_remove
+def notes_remove(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        task_id = update.message.text.replace("/notes_remove ", "")
+        if task_id == "/notes_remove":
+            bot.send_message(chat_id=update.message.chat_id, text="Para eliminar una nota debe proceder como se indica:\n"
+                                                                  "  /notes_remove <ID>")
+        else:
+            subprocess.run(["task", "project:notes", task_id, "done"], stdout=subprocess.PIPE)
+            bot.send_message(chat_id=update.message.chat_id, text="Se ha eliminado la siguiente nota:\n" + task_id)
+            logging.info("Alfred eliminó la nota con el ID " + task_id + " a petición del client ID " + str(update.message.chat_id))
+
+
 # Función opción /restaurants
 def restaurants(bot, update):
     if client_authentication(bot, update.message.chat_id):
@@ -228,254 +272,6 @@ def restaurants_remove(bot, update):
             logging.info("Alfred eliminó el restaurante con el ID " + task_id + " a petición del client ID " + str(update.message.chat_id))
 
 
-# Función opción /events
-def events(bot, update):
-    if client_authentication(bot, update.message.chat_id):
-        bot.send_message(chat_id=update.message.chat_id, text="Gestionar eventos y recordatorios:\n"
-                                                              "  /events_list\n"
-                                                              "  /events_add\n"
-                                                              "  /events_edit\n"
-                                                              "  /events_remove\n")
-
-
-# Función opción /events_list
-def events_list(bot, update):
-    if client_authentication(bot, update.message.chat_id):
-        if events_sort():
-            bot.send_message(chat_id=update.message.chat_id, text="Se ha reordenado la lista de eventos")
-            logging.info("Lista de eventos reordenada")
-        script_path = os.path.dirname(sys.argv[0])
-        with open(script_path + events_file, 'r') as f:
-            events = json.load(f)
-        if events == "":
-            bot.send_message(chat_id=update.message.chat_id, text="Eventos actuales:\n"
-                                                                  "(vacío)")
-        else:
-            bot.send_message(chat_id=update.message.chat_id, text="Eventos actuales:\n")
-            for event in events['events']:
-                id = event['id']
-                title = event['title']
-                event_date = event['event_date']
-                reminder_date = event['reminder_date']
-                bot.send_message(chat_id=update.message.chat_id, text="  ID: " + str(id) + "\n"
-                                                                      "  Evento: " + title + "\n"
-                                                                      "  Fecha: " + event_date + "\n"
-                                                                      "  Avisar a partir de: " + reminder_date + "\n")
-
-
-# Función opción /events_add
-def events_add(bot, update):
-    if client_authentication(bot, update.message.chat_id):
-        logging.debug("Realizando comprobaciones previas antes de crear un evento")
-        params = update.message.text.replace("/events_add ", "")
-        if params == "/events_add":
-            bot.send_message(chat_id=update.message.chat_id, text="Para añadir un evento debe proceder como se indica:\n"
-                                                                  "  /events_add <evento> <fecha de evento> <fecha de recordatorio>\n"
-                                                                  "  (las fechas en formato DD.MM.AAAA)")
-            return False
-        if len(params.split(" ")) < 3:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="Sintanxis incorrecta. Para añadir un evento debe proceder como se indica:\n"
-                                  "  /events_add <evento> <fecha de evento> <fecha de recordatorio>\n"
-                                  "  (las fechas en formato DD.MM.AAAA)")
-            logging.warning("Sintaxis incorrecta al intentar crear un evento a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        reminder_date_new = params[-10:]
-        event_date_new = params[-21:-11]
-        title_new = params[:-22]
-        if len(event_date_new) != 10:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="La fecha de evento debe ir en formato DD.MM.AAAA")
-            logging.warning("Se ha introducido mal la fecha de evento al intentar crear un evento a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        if len(event_date_new.split(".")) != 3:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="La fecha de evento debe ir en formato DD.MM.AAAA")
-            logging.warning("Se ha introducido mal la fecha de evento al intentar crear un evento a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        if len(reminder_date_new) != 10:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="La fecha de recordatorio debe ir en formato DD.MM.AAAA")
-            logging.warning("Se ha introducido mal la fecha de recordatorio al intentar crear un evento a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        if len(reminder_date_new.split(".")) != 3:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="La fecha de recordatorio debe ir en formato DD.MM.AAAA")
-            logging.warning("Se ha introducido mal la fecha de recordatorio al intentar crear un evento a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        logging.debug("Creando un nuevo evento")
-        script_path = os.path.dirname(sys.argv[0])
-        with open(script_path + events_file, 'r') as f1:
-            events = json.load(f1)
-        events_new = {}
-        events_new['events'] = []
-        for event in events['events']:
-            id = event['id']
-            title = event['title']
-            event_date = event['event_date']
-            reminder_date = event['reminder_date']
-            events_new['events'].append({
-                'id': id,
-                'title': title,
-                'event_date': event_date,
-                'reminder_date': reminder_date
-            })
-        id_new = id + 1
-        events_new['events'].append({
-            'id': id_new,
-            'title': title_new,
-            'event_date': event_date_new,
-            'reminder_date': reminder_date_new
-        })
-        with open(script_path + events_tmp_file, 'w+') as f2:
-            json.dump(events_new, f2, indent=2)
-        copyfile(script_path + events_tmp_file, script_path + events_file)
-        os.remove(script_path + events_tmp_file)
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="Se ha creado el evento " + title_new + " con el ID " + str(id_new))
-        logging.info("Alfred creó el evento " + title_new + " con el ID " + str(id_new) + " a petición del client ID " + str(
-            update.message.chat_id))
-        return True
-
-
-# Función opción /events_edit
-def events_edit(bot, update):
-    if client_authentication(bot, update.message.chat_id):
-        logging.debug("Realizando comprobaciones previas antes de modificar un evento")
-        params = update.message.text.replace("/events_edit ", "")
-        if params == "/events_edit":
-            bot.send_message(chat_id=update.message.chat_id, text="Para modificar un evento debe proceder como se indica:\n"
-                                                                  "  /events_edit <ID> <nueva fecha de evento> <nueva fecha de recordatorio>\n"
-                                                                  "  (las fechas en formato DD.MM.AAAA)")
-            return False
-        if len(params.split(" ")) < 3:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="Sintanxis incorrecta. Para modificar un evento debe proceder como se indica:\n"
-                                  "  /events_edit <ID> <nueva fecha de evento> <nueva fecha de recordatorio>\n"
-                                  "  (las fechas en formato DD.MM.AAAA)")
-            logging.warning("Sintaxis incorrecta al intentar modificar un evento")
-            return False
-        reminder_date_new = params[-10:]
-        event_date_new = params[-21:-11]
-        id = params[:-22]
-        if not event_id_hit(id):
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="No existe ningún evento con el identificador " + id)
-            logging.warning("Se ha intentado modificar un evento con un identificador no válido a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        logging.debug("Identificador de evento encontrado: " + id)
-        if len(event_date_new) != 10:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="La nueva fecha de evento debe ir en formato DD.MM.AAAA")
-            logging.warning("Se ha introducido mal la nueva fecha de evento al intentar modificar un evento a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        if len(event_date_new.split(".")) != 3:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="La nueva fecha de evento debe ir en formato DD.MM.AAAA")
-            logging.warning("Se ha introducido mal la nueva fecha de evento al intentar modificar un evento a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        if len(reminder_date_new) != 10:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="La nueva fecha de recordatorio debe ir en formato DD.MM.AAAA")
-            logging.warning("Se ha introducido mal la nueva fecha de recordatorio al intentar modificar un evento a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        if len(reminder_date_new.split(".")) != 3:
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="La nueva fecha de recordatorio debe ir en formato DD.MM.AAAA")
-            logging.warning("Se ha introducido mal la nueva fecha de recordatorio al intentar modificar un evento a petición del cliente ID " + str(
-            update.message.chat_id))
-            return False
-        logging.debug("Modificando el evento con ID " + id)
-        script_path = os.path.dirname(sys.argv[0])
-        with open(script_path + events_file, 'r') as f1:
-            events = json.load(f1)
-        events_new = {}
-        events_new['events'] = []
-        for event in events['events']:
-            event_id = event['id']
-            title = event['title']
-            if int(id) != event_id:
-                event_date = event['event_date']
-                reminder_date = event['reminder_date']
-            else:
-                event_date = event_date_new
-                reminder_date = reminder_date_new
-            events_new['events'].append({
-                'event_id': event_id,
-                'title': title,
-                'event_date': event_date,
-                'reminder_date': reminder_date
-            })
-        with open(script_path + events_tmp_file, 'w+') as f2:
-            json.dump(events_new, f2, indent=2)
-        copyfile(script_path + events_tmp_file, script_path + events_file)
-        os.remove(script_path + events_tmp_file)
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="Se ha modificado el evento con el ID " + str(id))
-        logging.info(
-            "Alfred modificó el evento con el ID " + str(id) + " a petición del client ID " + str(
-                update.message.chat_id))
-        return True
-
-
-# Función opción /events_remove
-def events_remove(bot, update):
-    if client_authentication(bot, update.message.chat_id):
-        event_id = update.message.text.replace("/events_remove ", "")
-        if event_id == "/events_remove":
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="Para eliminar un evento debe proceder como se indica:\n"
-                                  "  /events_remove <ID>")
-            return False
-        logging.debug("Comprobando identificador de evento antes de borrarlo")
-        if not event_id_hit(event_id):
-            bot.send_message(chat_id=update.message.chat_id,
-                             text="No existe ningún evento con el identificador " + event_id)
-            logging.warning("Se ha intentado borrar un evento con un identificador no válido a petición del client ID " + str(
-                update.message.chat_id))
-            return False
-        logging.debug("Identificador de evento encontrado: " + event_id)
-        logging.debug("Borrando el evento con ID " + event_id)
-        script_path = os.path.dirname(sys.argv[0])
-        with open(script_path + events_file, 'r') as f1:
-            events = json.load(f1)
-        events_new = {}
-        events_new['events'] = []
-        for event in events['events']:
-            if int(event_id) != event['id']:
-                id = event['id']
-                title = event['title']
-                event_date = event['event_date']
-                reminder_date = event['reminder_date']
-                events_new['events'].append({
-                    'id': id,
-                    'title': title,
-                    'event_date': event_date,
-                    'reminder_date': reminder_date
-                })
-        with open(script_path + events_tmp_file, 'w+') as f2:
-            json.dump(events_new, f2, indent=2)
-        copyfile(script_path + events_tmp_file, script_path + events_file)
-        os.remove(script_path + events_tmp_file)
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="Se ha eliminado el evento con el ID " + event_id)
-        logging.info("Alfred eliminó el evento el ID " + event_id + " a petición del client ID " + str(
-            update.message.chat_id))
-        if events_sort():
-            bot.send_message(chat_id=update.message.chat_id, text="Se ha reordenado la lista de eventos")
-            logging.info("Lista de eventos reordenada")
-        return True
-
-
 # Función para comandos no conocidos
 def unknown(bot, update):
     if client_authentication(bot, update.message.chat_id):
@@ -501,10 +297,6 @@ def main():
     bot_token = config['DEFAULT']['BOT_TOKEN']
     global client_ids
     client_ids = config['DEFAULT']['CLIENT_IDS']
-    global events_file
-    events_file = config['DEFAULT']['EVENTS_DB_FILE']
-    global events_tmp_file
-    events_tmp_file = config['DEFAULT']['EVENTS_DB_TMP_FILE']
 
     # Configurar logger a fichero
     logging.basicConfig(level=getattr(logging, log_level),
@@ -536,53 +328,29 @@ def main():
     help_handler = CommandHandler('help', help)
     dispatcher.add_handler(help_handler)
 
-    # Añadir al Dispatcher un Handler para el comando /notes
-    notes_handler = CommandHandler('notes', notes)
-    dispatcher.add_handler(notes_handler)
+    # Añadir al Dispatcher un Handler para el comando /amazon
+    amazon_handler = CommandHandler('amazon', amazon)
+    dispatcher.add_handler(amazon_handler)
 
-    # Añadir al Dispatcher un Handler para el comando /notes_list
-    notes_list_handler = CommandHandler('notes_list', notes_list)
-    dispatcher.add_handler(notes_list_handler)
+    # Añadir al Dispatcher un Handler para el comando /amazon_list
+    amazon_list_handler = CommandHandler('amazon_list', amazon_list)
+    dispatcher.add_handler(amazon_list_handler)
 
-    # Añadir al Dispatcher un Handler para el comando /notes_add
-    notes_add_handler = CommandHandler('notes_add', notes_add)
-    dispatcher.add_handler(notes_add_handler)
+    # Añadir al Dispatcher un Handler para el comando /birthdays
+    birthdays_handler = CommandHandler('birthdays', birthdays)
+    dispatcher.add_handler(birthdays_handler)
 
-    # Añadir al Dispatcher un Handler para el comando /notes_remove
-    notes_remove_handler = CommandHandler('notes_remove', notes_remove)
-    dispatcher.add_handler(notes_remove_handler)
+    # Añadir al Dispatcher un Handler para el comando /birthdays_list
+    birthdays_list_handler = CommandHandler('birthdays_list', birthdays_list)
+    dispatcher.add_handler(birthdays_list_handler)
 
-    # Añadir al Dispatcher un Handler para el comando /films
-    films_handler = CommandHandler('films', films)
-    dispatcher.add_handler(films_handler)
+    # Añadir al Dispatcher un Handler para el comando /birthdays_add
+    birthdays_add_handler = CommandHandler('birthdays_add', birthdays_add)
+    dispatcher.add_handler(birthdays_add_handler)
 
-    # Añadir al Dispatcher un Handler para el comando /films_list
-    films_list_handler = CommandHandler('films_list', films_list)
-    dispatcher.add_handler(films_list_handler)
-
-    # Añadir al Dispatcher un Handler para el comando /films_add
-    films_add_handler = CommandHandler('films_add', films_add)
-    dispatcher.add_handler(films_add_handler)
-
-    # Añadir al Dispatcher un Handler para el comando /films_remove
-    films_remove_handler = CommandHandler('films_remove', films_remove)
-    dispatcher.add_handler(films_remove_handler)
-
-    # Añadir al Dispatcher un Handler para el comando /restaurants
-    restaurants_handler = CommandHandler('restaurants', restaurants)
-    dispatcher.add_handler(restaurants_handler)
-
-    # Añadir al Dispatcher un Handler para el comando /restaurants_list
-    restaurants_list_handler = CommandHandler('restaurants_list', restaurants_list)
-    dispatcher.add_handler(restaurants_list_handler)
-
-    # Añadir al Dispatcher un Handler para el comando /restaurants_add
-    restaurants_add_handler = CommandHandler('restaurants_add', restaurants_add)
-    dispatcher.add_handler(restaurants_add_handler)
-
-    # Añadir al Dispatcher un Handler para el comando /restaurants_remove
-    restaurants_remove_handler = CommandHandler('restaurants_remove', restaurants_remove)
-    dispatcher.add_handler(restaurants_remove_handler)
+    # Añadir al Dispatcher un Handler para el comando /birthdays_remove
+    birthdays_remove_handler = CommandHandler('birthdays_remove', birthdays_remove)
+    dispatcher.add_handler(birthdays_remove_handler)
 
     # Añadir al Dispatcher un Handler para el comando /events
     events_handler = CommandHandler('events', events)
@@ -604,6 +372,54 @@ def main():
     events_remove_handler = CommandHandler('events_remove', events_remove)
     dispatcher.add_handler(events_remove_handler)
 
+    # Añadir al Dispatcher un Handler para el comando /films
+    films_handler = CommandHandler('films', films)
+    dispatcher.add_handler(films_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /films_list
+    films_list_handler = CommandHandler('films_list', films_list)
+    dispatcher.add_handler(films_list_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /films_add
+    films_add_handler = CommandHandler('films_add', films_add)
+    dispatcher.add_handler(films_add_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /films_remove
+    films_remove_handler = CommandHandler('films_remove', films_remove)
+    dispatcher.add_handler(films_remove_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /notes
+    notes_handler = CommandHandler('notes', notes)
+    dispatcher.add_handler(notes_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /notes_list
+    notes_list_handler = CommandHandler('notes_list', notes_list)
+    dispatcher.add_handler(notes_list_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /notes_add
+    notes_add_handler = CommandHandler('notes_add', notes_add)
+    dispatcher.add_handler(notes_add_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /notes_remove
+    notes_remove_handler = CommandHandler('notes_remove', notes_remove)
+    dispatcher.add_handler(notes_remove_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /restaurants
+    restaurants_handler = CommandHandler('restaurants', restaurants)
+    dispatcher.add_handler(restaurants_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /restaurants_list
+    restaurants_list_handler = CommandHandler('restaurants_list', restaurants_list)
+    dispatcher.add_handler(restaurants_list_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /restaurants_add
+    restaurants_add_handler = CommandHandler('restaurants_add', restaurants_add)
+    dispatcher.add_handler(restaurants_add_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /restaurants_remove
+    restaurants_remove_handler = CommandHandler('restaurants_remove', restaurants_remove)
+    dispatcher.add_handler(restaurants_remove_handler)
+
     # Añadir al Dispatcher un Handler para los comandos desconocidos
     unknown_handler = MessageHandler(Filters.command, unknown)
     dispatcher.add_handler(unknown_handler)
@@ -619,6 +435,7 @@ def main():
 
     # Fin
     logging.info("Fin del programa")
+
 
 if __name__ == '__main__':
     main()

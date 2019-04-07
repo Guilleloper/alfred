@@ -24,23 +24,28 @@
 - Prepración de las ubicaciones para el software:
   # sudo mkdir /opt/alfred
   # sudo mkdir /opt/alfred/bin
+  # sudo mkdir /opt/alfred/bin/modules
   # sudo mkdir /opt/alfred/config
   # sudo mkdir /opt/alfred/data
   # sudo chown -R pi:pi /opt/alfred
 
 - Ubicar los scripts en la ubicación correspondiente:
   # ls -rtl /opt/alfred/bin/alfred.py
-  -rw-r--r-- 1 pi pi 21629 jun 30 19:25 /opt/alfred/bin/alfred.py
-  # ls -rtl /opt/alfred/bin/events.py
-  -rw-rw-r-- 1 pi pi 2480 ene  1 19:54 /opt/alfred/bin/events.py
+  -rw-r--r-- 1 pi pi 19854 abr  7 22:54 /opt/alfred/bin/alfred.py
+  # ls -rtl /opt/alfred/bin/modules/mod_events.py
+  -rw-r--r-- 1 pi pi 18073 abr  7 22:55 /opt/alfred/bin/modules/mod_events.py
+  # ls -rtl /opt/alfred/bin/modules/mod_birthdays.py
+  -rw-r--r-- 1 pi pi 12428 abr  7 22:55 /opt/alfred/bin/modules/mod_birthdays.py
 
 - Ubicar el fichero de configuración en la ubicación correspondiente:
   # ls -rtl /opt/alfred/config/config.json
-  -rw-r--r-- 1 pi pi 204 jun 30 19:26 /opt/alfred/config/config.json
+  -rw-r--r-- 1 pi pi 553 abr  7 23:00 /opt/alfred/config/config.json
 
 - Ubicar el fichero de eventos en la ubicación correspondiente:
   # ls -rtl /opt/alfred/data/events.json
-  -rw-rw-r-- 1 pi pi 395 ene  1 20:00 /opt/alfred/data/events.json
+  -rw-r--r-- 1 pi pi 1841 abr  7 23:02 /opt/alfred/data/events.json
+  # ls -rtl /opt/alfred/data/birthdays.json
+  -rw-r--r-- 1 pi pi 333 abr  7 22:56 /opt/alfred/data/birthdays.json
 
 - Prepración de las ubicaciones para los logs:
   # sudo mkdir /var/log/alfred
@@ -48,7 +53,8 @@
 
 - Dar permisos de ejecución al script:
   # sudo chmod 755 /opt/alfred/bin/alfred.py
-  # sudo chmod 755 /opt/alfred/bin/events.py
+  # sudo chmod 755 /opt/alfred/bin/modules/mod_events.py
+  # sudo chmod 755 /opt/alfred/bin/modules/mod_birthdays.py
 
 - Instalar dependiencias:
   # sudo pip3.5 install python-telegram-bot --upgrade
@@ -59,6 +65,10 @@
 
 - Añadir los eventos/recordatorios que correspondan, editando su correspondiente fichero:
   # view /opt/alfred/data/events.json
+  ...
+
+- Añadir los cumpleaños que correspondan, editando su correspondiente fichero:
+  # view /opt/alfred/data/birthdays.json
   ...
 
 - Configuración del autoarranque. Creación de un servicio:
@@ -88,7 +98,13 @@
   # view /etc/cron.d/events
   ~
   # Programacion para la ejecucion del script events
-  00 10,22 * * * pi /usr/bin/python3.5 /opt/alfred/bin/events.py
+  00 10,22 * * * pi /usr/bin/python3.5 /opt/alfred/bin/modules/mod_events.py
+  ~
+
+  # view /etc/cron.d/birthdays
+  ~
+  # Programacion para la ejecucion del script birthdays
+  00 08 * * * pi /usr/bin/python3.5 /opt/alfred/bin/modules/mod_birthdays.py
   ~
 
 - Configuración de Logrotate para controlar los logs generados:
@@ -102,4 +118,4 @@
     missingok
   }
 
-Si se hubiera configurado Events para escribiera en un log distinto al de Alfred, se debería tener en cuenta para el fichero de configuración de Logrotate.
+Si se hubiera configurado Events o Birthdays para que escribieran en un log distinto al de Alfred, se debería tener en cuenta para el fichero de configuración de Logrotate.

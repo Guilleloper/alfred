@@ -19,7 +19,12 @@ Features:
   - Settings by config file.
   - Records in the log file for non authorized executions.
 
-(NEW) Events module:
+Events module:
   - Bot sends event notifications.
   - Periodic execution by cronfile.
   - Events management by Bot's commands.
+
+(NEW) Birthdays module:
+  - Bot sends birthdays notifications.
+  - Periodic execution by cronfile.
+  - Birthdays management by Bot's commands.
