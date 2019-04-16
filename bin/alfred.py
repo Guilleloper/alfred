@@ -15,6 +15,7 @@ import sys
 import os
 from modules import mod_birthdays
 from modules import mod_events
+from modules import mod_amazon
 
 
 # DEFINICIÓN DE FUNCIONES
@@ -42,7 +43,7 @@ def start(bot, update):
 def help(bot, update):
     if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Opciones disponibles:\n"
-                                                          "  /amazon (coming soon)\n"
+                                                          "  /amazon\n"
                                                           "  /birthdays\n"
                                                           "  /events\n"
                                                           "  /films\n"
@@ -55,15 +56,34 @@ def help(bot, update):
 def amazon(bot, update):
     if client_authentication(bot, update.message.chat_id):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar seguimiento de productos de Amazon:\n"
-                                                              "  /amazon_list (coming soon)\n"
-                                                              "  /amazon_add (coming soon)\n"
-                                                              "  /amazon_remove (coming soon)\n")
+                                                              "  /amazon_list\n"
+                                                              "  /amazon_add)\n"
+                                                              "  /amazon_remove\n"
+                                                              "  <--  /back\n")
 
 
 # Funciín opción /amazon_list
 def amazon_list(bot, update):
     if client_authentication(bot, update.message.chat_id):
-        amazon = AmazonAPI()
+        mod_amazon.sort(bot, update)
+        mod_amazon.list(bot, update)
+        amazon(bot, update)
+
+
+# Función opción /amazon_add
+def amazon_add(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        if mod_amazon.add(bot, update):
+            mod_amazon.sort(bot, update)
+        amazon(bot, update)
+
+
+# Función opción /amazon_remove
+def amazon_remove(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        if mod_amazon.remove(bot, update):
+            mod_amazon.sort(bot, update)
+        amazon(bot, update)
 
 
 # Función opicón /birthdays
@@ -72,7 +92,8 @@ def birthdays(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar cumpleaños:\n"
                                                               "  /birthdays_list\n"
                                                               "  /birthdays_add\n"
-                                                              "  /birthdays_remove\n")
+                                                              "  /birthdays_remove\n"
+                                                              "  <--  /back\n")
 
 
 # Función opción /birtdhays_list
@@ -80,6 +101,7 @@ def birthdays_list(bot, update):
     if client_authentication(bot, update.message.chat_id):
         mod_birthdays.sort(bot, update)
         mod_birthdays.list(bot, update)
+        birthdays(bot, update)
 
 
 # Función opción /birthdays_add
@@ -87,13 +109,15 @@ def birthdays_add(bot, update):
     if client_authentication(bot, update.message.chat_id):
         if mod_birthdays.add(bot, update):
             mod_birthdays.sort(bot, update)
+        birthdays(bot, update)
 
 
-# Función opción /events_remove
+# Función opción /birhtdays_remove
 def birthdays_remove(bot, update):
     if client_authentication(bot, update.message.chat_id):
         if mod_birthdays.remove(bot, update):
             mod_birthdays.sort(bot, update)
+        birthdays(bot, update)
 
 
 # Función opción /events
@@ -103,7 +127,8 @@ def events(bot, update):
                                                               "  /events_list\n"
                                                               "  /events_add\n"
                                                               "  /events_edit\n"
-                                                              "  /events_remove\n")
+                                                              "  /events_remove\n"
+                                                              "  <--  /back\n")
 
 
 # Función opción /events_list
@@ -111,6 +136,7 @@ def events_list(bot, update):
     if client_authentication(bot, update.message.chat_id):
         mod_events.sort(bot, update)
         mod_events.list(bot, update)
+        events(bot, update)
 
 
 # Función opción /events_add
@@ -118,6 +144,7 @@ def events_add(bot, update):
     if client_authentication(bot, update.message.chat_id):
         if mod_events.add(bot, update):
             mod_events.sort(bot, update)
+        events(bot, update)
 
 
 # Función opción /events_edit
@@ -125,6 +152,7 @@ def events_edit(bot, update):
     if client_authentication(bot, update.message.chat_id):
         if mod_events.edit(bot, update):
             mod_events.sort(bot, update)
+        events(bot, update)
 
 
 # Función opción /events_remove
@@ -132,6 +160,7 @@ def events_remove(bot, update):
     if client_authentication(bot, update.message.chat_id):
         if mod_events.remove(bot, update):
             mod_events.sort(bot, update)
+        events(bot, update)
 
 
 # Función opción /films
@@ -140,7 +169,8 @@ def films(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar películas:\n"
                                                               "  /films_list\n"
                                                               "  /films_add\n"
-                                                              "  /films_remove\n")
+                                                              "  /films_remove\n"
+                                                              "  <--  /back\n")
 
 
 # Función opción /films_list
@@ -152,6 +182,7 @@ def films_list(bot, update):
                                                                   "(vacío)")
         else:
             bot.send_message(chat_id=update.message.chat_id, text="Películas actuales:\n" + task_list.stdout.decode('utf-8'))
+        films(bot, update)
 
 
 # Función opción /films_add
@@ -165,6 +196,7 @@ def films_add(bot, update):
             subprocess.run(["task", "project:films", "add", task_desc], stdout=subprocess.PIPE)
             bot.send_message(chat_id=update.message.chat_id, text="Se ha añadido la siguiente película:\n" + task_desc)
             logging.info("Alfred añadió la película " + task_desc + " a petición del client ID " + str(update.message.chat_id))
+        films(bot, update)
 
 
 # Función opción /films_remove
@@ -178,6 +210,7 @@ def films_remove(bot, update):
             subprocess.run(["task", "project:films", task_id, "done"], stdout=subprocess.PIPE)
             bot.send_message(chat_id=update.message.chat_id, text="Se ha eliminado la siguiente película:\n" + task_id)
             logging.info("Alfred eliminó la película con el ID " + task_id + " a petición del client ID " + str(update.message.chat_id))
+        films(bot, update)
 
 
 # Función opción /notes
@@ -186,7 +219,8 @@ def notes(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar notas:\n"
                                                           "  /notes_list\n"
                                                           "  /notes_add\n"
-                                                          "  /notes_remove\n")
+                                                          "  /notes_remove\n"
+                                                          "  <--  /back\n")
 
 
 # Función opción /notes_list
@@ -198,6 +232,7 @@ def notes_list(bot, update):
                                                                   "(vacío)")
         else:
             bot.send_message(chat_id=update.message.chat_id, text="Notas actuales:\n" + task_list.stdout.decode('utf-8'))
+        notes(bot, update)
 
 
 # Función opción /notes_add
@@ -211,6 +246,7 @@ def notes_add(bot, update):
             subprocess.run(["task", "project:notes", "add", task_desc], stdout=subprocess.PIPE)
             bot.send_message(chat_id=update.message.chat_id, text="Se ha añadido la siguiente nota:\n" + task_desc)
             logging.info("Alfred añadió la nota " + task_desc + " a petición del client ID " + str(update.message.chat_id))
+        notes(bot, update)
 
 
 # Función opción /notes_remove
@@ -224,6 +260,7 @@ def notes_remove(bot, update):
             subprocess.run(["task", "project:notes", task_id, "done"], stdout=subprocess.PIPE)
             bot.send_message(chat_id=update.message.chat_id, text="Se ha eliminado la siguiente nota:\n" + task_id)
             logging.info("Alfred eliminó la nota con el ID " + task_id + " a petición del client ID " + str(update.message.chat_id))
+        notes(bot, update)
 
 
 # Función opción /restaurants
@@ -232,7 +269,8 @@ def restaurants(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar restaurantes:\n"
                                                               "  /restaurants_list\n"
                                                               "  /restaurants_add\n"
-                                                              "  /restaurants_remove\n")
+                                                              "  /restaurants_remove\n"
+                                                              "  <--  /back\n")
 
 
 # Función opción /restaurants_list
@@ -244,6 +282,7 @@ def restaurants_list(bot, update):
                                                                   "(vacío)")
         else:
             bot.send_message(chat_id=update.message.chat_id, text="Restaurantes actuales:\n" + task_list.stdout.decode('utf-8'))
+        restaurants(bot, update)
 
 
 # Función opción /restaurants_add
@@ -257,6 +296,7 @@ def restaurants_add(bot, update):
             subprocess.run(["task", "project:restaurants", "add", task_desc], stdout=subprocess.PIPE)
             bot.send_message(chat_id=update.message.chat_id, text="Se ha añadido el siguiente restaurante:\n" + task_desc)
             logging.info("Alfred añadió el restaurante " + task_desc + " a petición del client ID " + str(update.message.chat_id))
+        restaurants(bot, update)
 
 
 # Función opción /restaurants_remove
@@ -270,6 +310,7 @@ def restaurants_remove(bot, update):
             subprocess.run(["task", "project:restaurants", task_id, "done"], stdout=subprocess.PIPE)
             bot.send_message(chat_id=update.message.chat_id, text="Se ha eliminado el siguiente resturante:\n" + task_id)
             logging.info("Alfred eliminó el restaurante con el ID " + task_id + " a petición del client ID " + str(update.message.chat_id))
+        restaurants(bot, update)
 
 
 # Función para comandos no conocidos
@@ -292,8 +333,8 @@ def main():
     script_path = os.path.dirname(sys.argv[0])
     with open(script_path + '/../config/config.json', 'r') as f:
         config = json.load(f)
-    log_file = config['DEFAULT']['ALFRED_LOG_FILE']
-    log_level = config['DEFAULT']['ALFRED_LOG_LEVEL']
+    log_file = config['DEFAULT']['LOG_FILE']
+    log_level = config['DEFAULT']['LOG_LEVEL']
     bot_token = config['DEFAULT']['BOT_TOKEN']
     global client_ids
     client_ids = config['DEFAULT']['CLIENT_IDS']
@@ -328,6 +369,10 @@ def main():
     help_handler = CommandHandler('help', help)
     dispatcher.add_handler(help_handler)
 
+    # Añadir al Dispatcher un Handler para el comando /back
+    back_handler = CommandHandler('back', help)
+    dispatcher.add_handler(back_handler)
+
     # Añadir al Dispatcher un Handler para el comando /amazon
     amazon_handler = CommandHandler('amazon', amazon)
     dispatcher.add_handler(amazon_handler)
@@ -335,6 +380,14 @@ def main():
     # Añadir al Dispatcher un Handler para el comando /amazon_list
     amazon_list_handler = CommandHandler('amazon_list', amazon_list)
     dispatcher.add_handler(amazon_list_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /amazon_add
+    amazon_add_handler = CommandHandler('amazon_add', amazon_add)
+    dispatcher.add_handler(amazon_add_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /amazon_remove
+    amazon_remove_handler = CommandHandler('amazon_remove', amazon_remove)
+    dispatcher.add_handler(amazon_remove_handler)
 
     # Añadir al Dispatcher un Handler para el comando /birthdays
     birthdays_handler = CommandHandler('birthdays', birthdays)

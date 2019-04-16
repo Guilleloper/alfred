@@ -30,22 +30,26 @@
   # sudo chown -R pi:pi /opt/alfred
 
 - Ubicar los scripts en la ubicación correspondiente:
-  # ls -rtl /opt/alfred/bin/alfred.py
-  -rw-r--r-- 1 pi pi 19854 abr  7 22:54 /opt/alfred/bin/alfred.py
-  # ls -rtl /opt/alfred/bin/modules/mod_events.py
-  -rw-r--r-- 1 pi pi 18073 abr  7 22:55 /opt/alfred/bin/modules/mod_events.py
-  # ls -rtl /opt/alfred/bin/modules/mod_birthdays.py
-  -rw-r--r-- 1 pi pi 12428 abr  7 22:55 /opt/alfred/bin/modules/mod_birthdays.py
+  # /etc/cron.d $ ls -rtl /opt/alfred/bin/alfred.py
+  -rw-r--r-- 1 pi pi 21824 abr 16 23:59 /opt/alfred/bin/alfred.py
+  # /etc/cron.d $ ls -rtl /opt/alfred/bin/modules/mod_events.py
+  -rw-r--r-- 1 pi pi 18117 abr 15 20:12 /opt/alfred/bin/modules/mod_events.py
+  # /etc/cron.d $ ls -rtl /opt/alfred/bin/modules/mod_birthdays.py
+  -rw-r--r-- 1 pi pi 12481 abr 15 20:12 /opt/alfred/bin/modules/mod_birthdays.py
+  # /etc/cron.d $ ls -rtl /opt/alfred/bin/modules/mod_amazon.py 
+  -rw-r--r-- 1 pi pi 13691 abr 16 23:51 /opt/alfred/bin/modules/mod_amazon.py
 
 - Ubicar el fichero de configuración en la ubicación correspondiente:
   # ls -rtl /opt/alfred/config/config.json
-  -rw-r--r-- 1 pi pi 553 abr  7 23:00 /opt/alfred/config/config.json
+  -rw-r--r-- 1 pi pi 1953 abr 16 23:56 /opt/alfred/config/config.json
 
 - Ubicar el fichero de eventos en la ubicación correspondiente:
   # ls -rtl /opt/alfred/data/events.json
   -rw-r--r-- 1 pi pi 1841 abr  7 23:02 /opt/alfred/data/events.json
   # ls -rtl /opt/alfred/data/birthdays.json
   -rw-r--r-- 1 pi pi 333 abr  7 22:56 /opt/alfred/data/birthdays.json
+  # ls -rtl /opt/alfred/data/amazon.json
+  -rw-r--r-- 1 pi pi 335 abr 17 00:01 /opt/alfred/data/amazon.json
 
 - Prepración de las ubicaciones para los logs:
   # sudo mkdir /var/log/alfred
@@ -55,9 +59,13 @@
   # sudo chmod 755 /opt/alfred/bin/alfred.py
   # sudo chmod 755 /opt/alfred/bin/modules/mod_events.py
   # sudo chmod 755 /opt/alfred/bin/modules/mod_birthdays.py
+  # sudo chmod 755 /opt/alfred/bin/modules/mod_amazon.py
 
 - Instalar dependiencias:
   # sudo pip3.5 install python-telegram-bot --upgrade
+  # sudo pip3.5 install requests
+  # sudo pip3.5 install beautifulsoup4
+  # sudo pip3.5 install graphyte
 
 - Configurar el bot para el entorno que corresponda, editando su fichero de configuración:
   # view /opt/alfred/config/config.json
@@ -69,6 +77,10 @@
 
 - Añadir los cumpleaños que correspondan, editando su correspondiente fichero:
   # view /opt/alfred/data/birthdays.json
+  ...
+
+- Añadir los productos en seguimiento de Amazon, editando su correspondiente fichero:
+  # view /opt/alfred/data/amazon.json
   ...
 
 - Configuración del autoarranque. Creación de un servicio:
@@ -107,6 +119,12 @@
   00 08 * * * pi /usr/bin/python3.5 /opt/alfred/bin/modules/mod_birthdays.py
   ~
 
+  # view /etc/cron.d/amazon
+  ~
+  # Programacion para la ejecucion del script amazon
+  00 09,21 * * * pi /usr/bin/python3.5 /opt/alfred/bin/modules/mod_amazon.py
+  ~
+
 - Configuración de Logrotate para controlar los logs generados:
   # sudo view /etc/logrotate.d/alfred
   /var/log/alfred/alfred.log {
@@ -118,4 +136,4 @@
     missingok
   }
 
-Si se hubiera configurado Events o Birthdays para que escribieran en un log distinto al de Alfred, se debería tener en cuenta para el fichero de configuración de Logrotate.
+Si se hubiera configurado Events, Birthdays o Amazon para que escribieran en un log distinto al de Alfred, se debería tener en cuenta para el fichero de configuración de Logrotate.

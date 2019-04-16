@@ -1,0 +1,22 @@
+{
+  "amazon": [
+    {
+      "id": 1,
+      "name": "Product 1",
+      "initial_date": "01.01.2019",
+      "url": "https://www.amazon.es/dp/¿?"
+    },
+    {
+      "id": 2,
+      "name": "Product 2",
+      "initial_date": "13.02.2019",
+      "url": "https://www.amazon.es/dp/¿?"
+    },
+    {
+      "id": 3,
+      "name": "Product 3",
+      "initial_date": "07.04.2019",
+      "url": "https://www.amazon.es/dp/¿?"
+    }
+  ]
+}

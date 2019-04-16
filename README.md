@@ -1,7 +1,7 @@
 # alfred
 Scripts and documentation referred to the Alfred project
 
-Alfred is a software that manages a Telegram Bot. It's based in the python-telegram-bot that provides some methods for managing Telegram bots. -> https://github.com/python-telegram-bot/python-telegram-bot
+Alfred is a software that manages a personal Telegram Bot. It's based in the python-telegram-bot that provides some methods for managing Telegram bots. -> https://github.com/python-telegram-bot/python-telegram-bot
 
 It's necessary to create a Telegram Bot before deploying this code. -> https://core.telegram.org/bots
 
@@ -24,7 +24,14 @@ Events module:
   - Periodic execution by cronfile.
   - Events management by Bot's commands.
 
-(NEW) Birthdays module:
+Birthdays module:
   - Bot sends birthdays notifications.
   - Periodic execution by cronfile.
   - Birthdays management by Bot's commands.
+
+(NEW) Amazon module:
+  - Periodic execution by cronfile.
+  - Automatic product's price web scrape.
+  - Prices storage in a Graphite TSDB (it's necessary to have installed a Graphite server).
+  - Amazon products management by Bot's commands.
+  - (coming soon) Bot sends notifications about the reduced products price (real discounts).

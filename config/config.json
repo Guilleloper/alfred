@@ -1,9 +1,9 @@
 {
   "DEFAULT": {
-    "ALFRED_LOG_FILE": "/var/log/alfred/alfred.log",
-    "ALFRED_LOG_LEVEL": "INFO",
+    "LOG_FILE": "/var/log/alfred/alfred.log",
+    "LOG_LEVEL": "INFO",
     "BOT_TOKEN": "¿?",
-    "CLIENT_IDS": ["¿?","¿?"]
+    "CLIENT_IDS": ["¿?", "¿?"]
   },
   "EVENTS": {
     "LOG_FILE": "/var/log/alfred/alfred.log",
@@ -16,5 +16,29 @@
     "LOG_LEVEL": "INFO",
     "DB_FILE": "/opt/alfred/data/birthdays.json",
     "TMP_PATH": "/var/tmp"
+  },
+  "AMAZON": {
+    "LOG_FILE": "/var/log/alfred/alfred.log",
+    "LOG_LEVEL": "INFO",
+    "DB_FILE": "/opt/alfred/data/amazon.json",
+    "TMP_PATH": "/var/tmp",
+    "USER_AGENT_LIST": [
+      "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0",
+      "Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0",
+      "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:64.0) Gecko/20100101 Firefox/64.0",
+      "Mozilla/5.0 (X11; Linux i586; rv:63.0) Gecko/20100101 Firefox/63.0",
+      "Mozilla/5.0 (Windows NT 6.2; WOW64; rv:63.0) Gecko/20100101 Firefox/63.0",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML like Gecko) Chrome/44.0.2403.155 Safari/537.36",
+      "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.1 Safari/537.36",
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36"
+    ],
+    "USER_AGENT_HIT_FILE": "/var/tmp/user_agent_hits.stats",
+    "SCRAPING_MAX_TRIES": "3",
+    "REQUESTS_DELAY": "5",
+    "GRAPHITE_SERVER": "127.0.0.1",
+    "GRAPHITE_PORT": "2003",
+    "GRAPHITE_PREFIX": "datos.amazon"
   }
 }

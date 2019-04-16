@@ -106,7 +106,7 @@ def list(bot, update):
     db_file = config['BIRTHDAYS']['DB_FILE']
     with open(db_file, 'r') as f:
         items = json.load(f)
-    if items == "":
+    if items['birthdays'] == []:
         bot.send_message(chat_id=update.message.chat_id, text="Cumpleaños actuales:\n"
                                                               "(vacío)")
     else:
@@ -198,6 +198,7 @@ def add(bot, update):
     return True
 
 
+# Función para eliminar un cumpleaños
 def remove(bot, update):
 
     # Carga de fichero de configuracion

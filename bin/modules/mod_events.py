@@ -107,7 +107,7 @@ def list(bot, update):
     # Listado de eventos
     with open(db_file, 'r') as f:
         items = json.load(f)
-    if items == "":
+    if items['events'] == []:
         bot.send_message(chat_id=update.message.chat_id, text="Eventos actuales:\n"
                                                               "(vacío)")
     else:
@@ -312,6 +312,7 @@ def edit(bot, update):
     return True
 
 
+# Funcion para eliminar un evento
 def remove(bot, update):
 
     # Carga de fichero de configuracion
