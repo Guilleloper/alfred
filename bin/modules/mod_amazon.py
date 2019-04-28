@@ -104,6 +104,49 @@ def id_hit(item_id):
     return False
 
 
+# Función para obtener las estadísticas (valores mínimo, máximo, medio y actual) de un prodcuto en seguimiento
+def stats(item_id):
+    # Carga de fichero de configuracion
+    script_path = os.path.dirname(sys.argv[0])
+    with open(script_path + '/../config/config.json', 'r') as f:
+        config = json.load(f)
+    db_file = config['AMAZON']['DB_FILE']
+    graphite_server = config['AMAZON']['GRAPHITE_SERVER']
+    graphite_api_port = config['AMAZON']['GRAPHITE_API_PORT']
+    graphite_prefix = config['AMAZON']['GRAPHITE_PREFIX']
+    query_span = config['AMAZON']['REAL_DISCOUNT_HISTORY_TIME_CRITERIA']
+    # Obtención de las estadísticas de un producto
+    with open(db_file, 'r') as f1:
+        items = json.load(f1)
+    for item in items['amazon']:
+        if int(item_id) == item['id']:
+            item_name = item['name']
+            metric_prefix = item_name.replace(" ", "_")
+            url_min_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'min')&from=-" + query_span + "&until=now&format=json"
+            url_max_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'max')&from=-" + query_span + "&until=now&format=json"
+            url_avg_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'avg')&from=-" + query_span + "&until=now&format=json"
+            url_last_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'last')&from=-" + query_span + "&until=now&format=json"
+            page_min_value = requests.get(url_min_value)
+            page_max_value = requests.get(url_max_value)
+            page_avg_value = requests.get(url_avg_value)
+            page_last_value = requests.get(url_last_value)
+            html_min_value = page_min_value.content.decode('utf8')
+            html_max_value = page_max_value.content.decode('utf8')
+            html_avg_value = page_avg_value.content.decode('utf8')
+            html_last_value = page_last_value.content.decode('utf8')
+            json_min_value = json.loads(html_min_value)
+            json_max_value = json.loads(html_max_value)
+            json_avg_value = json.loads(html_avg_value)
+            json_last_value = json.loads(html_last_value)
+            item_min_value = json_min_value[0]['tags']['name']
+            item_max_value = json_max_value[0]['tags']['name']
+            item_avg_value = json_avg_value[0]['tags']['name']
+            item_last_value = json_last_value[0]['tags']['name']
+
+    item_stats = [item_name, item_min_value, item_max_value, item_avg_value, item_last_value]
+    return item_stats
+
+
 # Función para mostrar los productos en seguimiento
 def list(bot, update):
 
@@ -130,6 +173,45 @@ def list(bot, update):
                                                                   "  Nombre: " + item_name + "\n"
                                                                   "  En seguimiento desde: " + item_initial_date + "\n"
                                                                   "  URL: " + item_url + "\n")
+
+
+# Funcion para obtener el detalle (valores maximo, minimo, medio y actual) de un producto en seguimiento
+def detail(bot, update):
+    # Comprobaciones previas
+    id = update.message.text.replace("/amazon_detail ", "")
+    if id == "/amazon_detail":
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Para mostrar el detalle de un producto en seguimiento debe proceder como se indica:\n"
+                              "  /amazon_detail <ID>")
+        return False
+    logging.debug("Comprobando identificador de producto en seguimiento antes de mostrar el detalle")
+    if not id_hit(id):
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="No existe ningún producto en seguimiento con el identificador " + id)
+        logging.warning(
+            "Se ha intentado mostrar el detalle de un producto en seguimiento con un identificador no válido a petición del client ID " + str(
+                update.message.chat_id))
+        return False
+    logging.debug("Identificador de producto en seguimiento encontrado: " + id)
+
+    # Obtener detalle de un producto en seguimiento
+    item_stats = stats(id)
+    item_name = item_stats[0]
+    item_min_value = item_stats[1]
+    item_max_value = item_stats[2]
+    item_avg_value = item_stats[3]
+    item_last_value = item_stats[4]
+
+    # Mostrar detalle de un producto en seguimiento
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Detalle del producto \"" + item_name + "\":\n"
+                          "  Precio mínimo: " + item_min_value + "€\n"
+                          "  Precio máximo: " + item_max_value + "€\n"
+                          "  Precio medio: " + item_avg_value + "€\n"
+                          "  Precio actual: " + item_last_value + "€\n")
+    logging.info("Alfred mostró el detalle del producto en seguimiento con el ID " + id + " a petición del client ID " + str(
+        update.message.chat_id))
+    return True
 
 
 # Función para poner un producto en seguimiento
@@ -238,7 +320,7 @@ def remove(bot, update):
         return False
     logging.debug("Identificador de producto en seguimiento encontrado: " + id)
 
-    # Borrado del evento
+    # Borrado del producto en seguimiento
     logging.debug("Borrando el producto en seguimiento con ID " + id)
     with open(db_file, 'r') as f1:
         items = json.load(f1)
@@ -285,7 +367,7 @@ def main():
     scraping_max_tries = config['AMAZON']['SCRAPING_MAX_TRIES']
     requests_delay = config['AMAZON']['REQUESTS_DELAY']
     graphite_server = config['AMAZON']['GRAPHITE_SERVER']
-    graphite_port = config['AMAZON']['GRAPHITE_PORT']
+    graphite_carbon_port = config['AMAZON']['GRAPHITE_CARBON_PORT']
     graphite_prefix = config['AMAZON']['GRAPHITE_PREFIX']
 
     # Configurar logger a fichero:
@@ -308,7 +390,7 @@ def main():
     bot = telegram.Bot(token=bot_token)
 
     # Scrape de los precios de los productos en seguimiento y escritura en Graphite
-    graphyte.init(graphite_server, port=graphite_port, prefix=graphite_prefix)
+    graphyte.init(graphite_server, port=graphite_carbon_port, prefix=graphite_prefix)
     logging.debug("Obteniendo el precio de cada producto en seguimiento")
     with open(db_file, 'r') as f1:
         items = json.load(f1)
@@ -332,6 +414,7 @@ def main():
             n_tries += 1
         if price:
             logging.info("Precio de " + item['name'] + " encontrado: " + price + " €")
+            # Registro de user agent valido para su posterior analisis
             with open(user_agent_hit_file, 'a') as f2:
                 f2.write(user_agent + "\n")
             # Envio de metricas a Graphite:
