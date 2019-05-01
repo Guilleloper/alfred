@@ -34,4 +34,6 @@ Birthdays module:
   - Automatic product's price web scrape.
   - Prices storage in a Graphite TSDB (it's necessary to have installed a Graphite server).
   - Amazon products management by Bot's commands.
+  - Get stats products (min, max, avg and last product price).
+  - Get history prices graph image.
   - (coming soon) Bot sends notifications about the reduced products price (real discounts).

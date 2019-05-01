@@ -58,6 +58,7 @@ def amazon(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar seguimiento de productos de Amazon:\n"
                                                               "  /amazon_list\n"
                                                               "  /amazon_detail\n"
+                                                              "  /amazon_graph\n"
                                                               "  /amazon_add\n"
                                                               "  /amazon_remove\n"
                                                               "  <--  /back\n")
@@ -71,11 +72,17 @@ def amazon_list(bot, update):
         amazon(bot, update)
 
 
-# Funciín opción /amazon_list
+# Funciín opción /amazon_detail
 def amazon_detail(bot, update):
     if client_authentication(bot, update.message.chat_id):
-        mod_amazon.sort(bot, update)
         mod_amazon.detail(bot, update)
+        amazon(bot, update)
+
+
+# Funciín opción /amazon_graph
+def amazon_graph(bot, update):
+    if client_authentication(bot, update.message.chat_id):
+        mod_amazon.graph(bot, update)
         amazon(bot, update)
 
 
@@ -393,6 +400,10 @@ def main():
     # Añadir al Dispatcher un Handler para el comando /amazon_detail
     amazon_detail_handler = CommandHandler('amazon_detail', amazon_detail)
     dispatcher.add_handler(amazon_detail_handler)
+
+    # Añadir al Dispatcher un Handler para el comando /amazon_graph
+    amazon_graph_handler = CommandHandler('amazon_graph', amazon_graph)
+    dispatcher.add_handler(amazon_graph_handler)
 
     # Añadir al Dispatcher un Handler para el comando /amazon_add
     amazon_add_handler = CommandHandler('amazon_add', amazon_add)

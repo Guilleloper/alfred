@@ -22,6 +22,7 @@ import random
 from bs4 import BeautifulSoup
 import requests
 import graphyte
+import shutil
 
 
 # DEFINICION DE FUNCIONES
@@ -104,8 +105,39 @@ def id_hit(item_id):
     return False
 
 
+# Función para obtener el timestamp del primer precio registrado para un producto en seguimiento
+def first_timestamp(item_id):
+
+    # Carga de fichero de configuración
+    script_path = os.path.dirname(sys.argv[0])
+    with open(script_path + '/../config/config.json', 'r') as f:
+        config = json.load(f)
+    db_file = config['AMAZON']['DB_FILE']
+    graphite_server = config['AMAZON']['GRAPHITE_SERVER']
+    graphite_api_port = config['AMAZON']['GRAPHITE_API_PORT']
+    graphite_prefix = config['AMAZON']['GRAPHITE_PREFIX']
+    max_graph_history = config['AMAZON']['MAX_GRAPH_HISTORY']
+
+    # Obtención del timestamp de la primera métrica
+    with open(db_file, 'r') as f1:
+        items = json.load(f1)
+    for item in items['amazon']:
+        if int(item_id) == item['id']:
+            item_name = item['name']
+            metric_prefix = item_name.replace(" ", "_")
+            url = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=" + graphite_prefix + "." + metric_prefix + "&from=-" + max_graph_history + "&until=now&format=json"
+            page_output = requests.get(url)
+            html_output = page_output.content.decode('utf8')
+            json_output = json.loads(html_output)
+            for datapoint in json_output[0]['datapoints']:
+                if datapoint[0] != None:
+                    timestamp = datapoint[1]
+                    break
+    return timestamp
+
 # Función para obtener las estadísticas (valores mínimo, máximo, medio y actual) de un prodcuto en seguimiento
 def stats(item_id):
+
     # Carga de fichero de configuracion
     script_path = os.path.dirname(sys.argv[0])
     with open(script_path + '/../config/config.json', 'r') as f:
@@ -114,7 +146,12 @@ def stats(item_id):
     graphite_server = config['AMAZON']['GRAPHITE_SERVER']
     graphite_api_port = config['AMAZON']['GRAPHITE_API_PORT']
     graphite_prefix = config['AMAZON']['GRAPHITE_PREFIX']
-    query_span = config['AMAZON']['REAL_DISCOUNT_HISTORY_TIME_CRITERIA']
+
+    # Obtención del timestamp del primer precio registrado para un producto en seguimiento
+    logging.debug("Obteniendo timestamp del primer precio registrado para un producto en seguimiento")
+    time_from = first_timestamp(item_id)
+    logging.debug("Timestamp del primer precio registrado obtenido: " + str(time_from))
+
     # Obtención de las estadísticas de un producto
     with open(db_file, 'r') as f1:
         items = json.load(f1)
@@ -122,10 +159,10 @@ def stats(item_id):
         if int(item_id) == item['id']:
             item_name = item['name']
             metric_prefix = item_name.replace(" ", "_")
-            url_min_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'min')&from=-" + query_span + "&until=now&format=json"
-            url_max_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'max')&from=-" + query_span + "&until=now&format=json"
-            url_avg_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'avg')&from=-" + query_span + "&until=now&format=json"
-            url_last_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'last')&from=-" + query_span + "&until=now&format=json"
+            url_min_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'min')&from=" + str(time_from) + "&until=now&format=json"
+            url_max_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'max')&from=" + str(time_from) + "&until=now&format=json"
+            url_avg_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'avg')&from=" + str(time_from) + "&until=now&format=json"
+            url_last_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + graphite_prefix + "." + metric_prefix + ",'last')&from=" + str(time_from) + "&until=now&format=json"
             page_min_value = requests.get(url_min_value)
             page_max_value = requests.get(url_max_value)
             page_avg_value = requests.get(url_avg_value)
@@ -177,6 +214,7 @@ def list(bot, update):
 
 # Funcion para obtener el detalle (valores maximo, minimo, medio y actual) de un producto en seguimiento
 def detail(bot, update):
+
     # Comprobaciones previas
     id = update.message.text.replace("/amazon_detail ", "")
     if id == "/amazon_detail":
@@ -195,12 +233,14 @@ def detail(bot, update):
     logging.debug("Identificador de producto en seguimiento encontrado: " + id)
 
     # Obtener detalle de un producto en seguimiento
+    logging.debug("Obteniendo las estadísticas del producto en seguimiento con ID: " + id)
     item_stats = stats(id)
     item_name = item_stats[0]
     item_min_value = item_stats[1]
     item_max_value = item_stats[2]
     item_avg_value = item_stats[3]
     item_last_value = item_stats[4]
+    logging.debug("Estadísticas obtenidas para el producto en seguimiento con ID: " + id)
 
     # Mostrar detalle de un producto en seguimiento
     bot.send_message(chat_id=update.message.chat_id,
@@ -209,9 +249,73 @@ def detail(bot, update):
                           "  Precio máximo: " + item_max_value + "€\n"
                           "  Precio medio: " + item_avg_value + "€\n"
                           "  Precio actual: " + item_last_value + "€\n")
-    logging.info("Alfred mostró el detalle del producto en seguimiento con el ID " + id + " a petición del client ID " + str(
+    logging.debug("Alfred mostró el detalle del producto en seguimiento con el ID " + id + " a petición del client ID " + str(
         update.message.chat_id))
     return True
+
+
+# Funcion para obtener la gráfica con el histórico de valores de un producto en seguimiento
+def graph(bot, update):
+
+    # Carga de fichero de configuración
+    script_path = os.path.dirname(sys.argv[0])
+    with open(script_path + '/../config/config.json', 'r') as f:
+        config = json.load(f)
+    db_file = config['AMAZON']['DB_FILE']
+    graph_tmp_file = config['AMAZON']['TMP_PATH'] + "/amazon.png"
+    graphite_server = config['AMAZON']['GRAPHITE_SERVER']
+    graphite_api_port = config['AMAZON']['GRAPHITE_API_PORT']
+    graphite_prefix = config['AMAZON']['GRAPHITE_PREFIX']
+
+    # Comprobaciones previas:
+    id = update.message.text.replace("/amazon_graph ", "")
+    if id == "/amazon_graph":
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="Para mostrar el historico de precios de un producto en seguimiento debe proceder como se indica:\n"
+                              "  /amazon_graph <ID>")
+        return False
+    if not id_hit(id):
+        bot.send_message(chat_id=update.message.chat_id,
+                         text="No existe ningún producto en seguimiento con el identificador " + id)
+        logging.warning(
+            "Se ha intentado mostrar el histórico de precios de un producto en seguimiento con un identificador no válido a petición del client ID " + str(
+                update.message.chat_id))
+        return False
+    logging.debug("Identificador de producto en seguimiento encontrado: " + id)
+
+    # Obtención del timestamp del primer precio registrado para un producto en seguimiento
+    logging.debug("Obteniendo timestamp del primer precio registrado para un producto en seguimiento")
+    time_from = first_timestamp(id)
+    logging.debug("Timestamp del primer precio registrado obtenido: " + str(time_from))
+
+    # Obtención de la gráfica y generación del fichero de imagen
+    logging.debug("Obteniendo la gráfica para el producto en seguimiento con ID " + id)
+    with open(db_file, 'r') as f1:
+        items = json.load(f1)
+    for item in items['amazon']:
+        if int(id) == item['id']:
+            item_name = item['name']
+            metric_prefix = item_name.replace(" ", "_")
+            url = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=" + graphite_prefix + "." + metric_prefix + "&from=" + str(time_from) + "&until=now"
+            page_output = requests.get(url, stream=True)
+            if page_output.status_code != 200:
+                logging.warning("No se ha podido descargar la gráfica para el producto en seguimiento con ID " + id)
+                return False
+            else:
+                with open(graph_tmp_file, 'wb') as f2:
+                    page_output.raw.decode_content = True
+                    shutil.copyfileobj(page_output.raw, f2)
+                logging.debug("Gráfica obtenida y almacenada en la ubicación" + graph_tmp_file)
+                # Envío de la imagen por chat
+                bot.send_photo(chat_id=update.message.chat_id,
+                               photo=open(graph_tmp_file, 'rb'))
+                logging.debug(
+                    "Alfred mostró la gráfica del producto en seguimiento con el ID " + id + " a petición del client ID " + str(
+                        update.message.chat_id))
+
+                # Borrar la imagen
+                os.remove(graph_tmp_file)
+                return True
 
 
 # Función para poner un producto en seguimiento
