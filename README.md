@@ -5,7 +5,7 @@ Alfred is a software that manages a personal Telegram Bot. It's based in the pyt
 
 It's necessary to create a Telegram Bot before deploying this code. -> https://core.telegram.org/bots
 
-The platform is based in the technologies/componentes related below:
+The platform is based in the technologies/components related below:
 
 1. Python -> The programming language used for the develop.
 
@@ -36,4 +36,4 @@ Birthdays module:
   - Amazon products management by Bot's commands.
   - Get stats products (min, max, avg and last product price).
   - Get history prices graph image.
-  - (coming soon) Bot sends notifications about the reduced products price (real discounts).
+  - Bot sends notifications about the reduced products price (real discounts).

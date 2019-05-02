@@ -35,13 +35,14 @@
       "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36"
     ],
     "USER_AGENT_HIT_FILE": "/var/tmp/user_agent_hits.stats",
-    "SCRAPING_MAX_TRIES": "3",
-    "REQUESTS_DELAY": "5",
+    "SCRAPING_MAX_TRIES": "4",
+    "REQUESTS_DELAY_MIN": "5",
+    "REQUESTS_DELAY_MAX": "10",
     "GRAPHITE_SERVER": "127.0.0.1",
     "GRAPHITE_CARBON_PORT": "2003",
     "GRAPHITE_API_PORT": "8080",
     "GRAPHITE_PREFIX": "datos.amazon",
     "MAX_GRAPH_HISTORY": "1y",
-    "REAL_DISCOUNT_AVG_PERCENT_CRITERIA": "15"
+    "REAL_DISCOUNT_PERCENT_CRITERIA": "10"
   }
 }
