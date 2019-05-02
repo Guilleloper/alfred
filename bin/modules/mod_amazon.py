@@ -285,10 +285,10 @@ def detail(bot, update):
     # Mostrar detalle de un producto en seguimiento
     bot.send_message(chat_id=update.message.chat_id,
                      text="Detalle del producto \"" + item_name + "\":\n"
-                          "  Precio mínimo: " + item_min_value + "€\n"
-                          "  Precio máximo: " + item_max_value + "€\n"
-                          "  Precio medio: " + str(round(float(item_avg_value),2)) + "€\n"
-                          "  Precio actual: " + item_last_value + "€\n")
+                          "  Precio mínimo: " + "{:.2f}".format(float(item_min_value)) + "€\n"
+                          "  Precio máximo: " + "{:.2f}".format(float(item_max_value)) + "€\n"
+                          "  Precio medio: " + "{:.2f}".format(round(float(item_avg_value),2)) + "€\n"
+                          "  Precio actual: " + "{:.2f}".format(float(item_last_value)) + "€\n")
     logging.debug("Alfred mostró el detalle del producto en seguimiento con el ID " + id + " a petición del client ID " + str(
         update.message.chat_id))
     return True
