@@ -135,8 +135,9 @@ def first_timestamp(item_id):
                     break
     return timestamp
 
+
 # Función para obtener las estadísticas (valores mínimo, máximo, medio y actual) de un prodcuto en seguimiento
-def stats(item_id):
+def stats(item_id, time_from):
 
     # Carga de fichero de configuracion
     script_path = os.path.dirname(sys.argv[0])
@@ -146,11 +147,6 @@ def stats(item_id):
     graphite_server = config['AMAZON']['GRAPHITE_SERVER']
     graphite_api_port = config['AMAZON']['GRAPHITE_API_PORT']
     graphite_prefix = config['AMAZON']['GRAPHITE_PREFIX']
-
-    # Obtención del timestamp del primer precio registrado para un producto en seguimiento
-    logging.debug("Obteniendo timestamp del primer precio registrado para un producto en seguimiento")
-    time_from = first_timestamp(item_id)
-    logging.debug("Timestamp del primer precio registrado obtenido: " + str(time_from))
 
     # Obtención de las estadísticas de un producto
     with open(db_file, 'r') as f1:
@@ -215,6 +211,16 @@ def list(bot, update):
 # Funcion para obtener el detalle (valores maximo, minimo, medio y actual) de un producto en seguimiento
 def detail(bot, update):
 
+    # Carga de fichero de configuración
+    script_path = os.path.dirname(sys.argv[0])
+    with open(script_path + '/../config/config.json', 'r') as f:
+        config = json.load(f)
+    db_file = config['AMAZON']['DB_FILE']
+    graph_tmp_file = config['AMAZON']['TMP_PATH'] + "/amazon.png"
+    graphite_server = config['AMAZON']['GRAPHITE_SERVER']
+    graphite_api_port = config['AMAZON']['GRAPHITE_API_PORT']
+    graphite_prefix = config['AMAZON']['GRAPHITE_PREFIX']
+
     # Comprobaciones previas
     id = update.message.text.replace("/amazon_detail ", "")
     if id == "/amazon_detail":
@@ -232,57 +238,6 @@ def detail(bot, update):
         return False
     logging.debug("Identificador de producto en seguimiento encontrado: " + id)
 
-    # Obtener detalle de un producto en seguimiento
-    logging.debug("Obteniendo las estadísticas del producto en seguimiento con ID: " + id)
-    item_stats = stats(id)
-    item_name = item_stats[0]
-    item_min_value = item_stats[1]
-    item_max_value = item_stats[2]
-    item_avg_value = item_stats[3]
-    item_last_value = item_stats[4]
-    logging.debug("Estadísticas obtenidas para el producto en seguimiento con ID: " + id)
-
-    # Mostrar detalle de un producto en seguimiento
-    bot.send_message(chat_id=update.message.chat_id,
-                     text="Detalle del producto \"" + item_name + "\":\n"
-                          "  Precio mínimo: " + item_min_value + "€\n"
-                          "  Precio máximo: " + item_max_value + "€\n"
-                          "  Precio medio: " + item_avg_value + "€\n"
-                          "  Precio actual: " + item_last_value + "€\n")
-    logging.debug("Alfred mostró el detalle del producto en seguimiento con el ID " + id + " a petición del client ID " + str(
-        update.message.chat_id))
-    return True
-
-
-# Funcion para obtener la gráfica con el histórico de valores de un producto en seguimiento
-def graph(bot, update):
-
-    # Carga de fichero de configuración
-    script_path = os.path.dirname(sys.argv[0])
-    with open(script_path + '/../config/config.json', 'r') as f:
-        config = json.load(f)
-    db_file = config['AMAZON']['DB_FILE']
-    graph_tmp_file = config['AMAZON']['TMP_PATH'] + "/amazon.png"
-    graphite_server = config['AMAZON']['GRAPHITE_SERVER']
-    graphite_api_port = config['AMAZON']['GRAPHITE_API_PORT']
-    graphite_prefix = config['AMAZON']['GRAPHITE_PREFIX']
-
-    # Comprobaciones previas:
-    id = update.message.text.replace("/amazon_graph ", "")
-    if id == "/amazon_graph":
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="Para mostrar el historico de precios de un producto en seguimiento debe proceder como se indica:\n"
-                              "  /amazon_graph <ID>")
-        return False
-    if not id_hit(id):
-        bot.send_message(chat_id=update.message.chat_id,
-                         text="No existe ningún producto en seguimiento con el identificador " + id)
-        logging.warning(
-            "Se ha intentado mostrar el histórico de precios de un producto en seguimiento con un identificador no válido a petición del client ID " + str(
-                update.message.chat_id))
-        return False
-    logging.debug("Identificador de producto en seguimiento encontrado: " + id)
-
     # Obtención del timestamp del primer precio registrado para un producto en seguimiento
     logging.debug("Obteniendo timestamp del primer precio registrado para un producto en seguimiento")
     time_from = first_timestamp(id)
@@ -296,7 +251,8 @@ def graph(bot, update):
         if int(id) == item['id']:
             item_name = item['name']
             metric_prefix = item_name.replace(" ", "_")
-            url = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=" + graphite_prefix + "." + metric_prefix + "&from=" + str(time_from) + "&until=now"
+            url = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=" + graphite_prefix + "." + metric_prefix + "&from=" + str(
+                time_from) + "&until=now"
             page_output = requests.get(url, stream=True)
             if page_output.status_code != 200:
                 logging.warning("No se ha podido descargar la gráfica para el producto en seguimiento con ID " + id)
@@ -315,7 +271,27 @@ def graph(bot, update):
 
                 # Borrar la imagen
                 os.remove(graph_tmp_file)
-                return True
+
+    # Obtener detalle de un producto en seguimiento
+    logging.debug("Obteniendo las estadísticas del producto en seguimiento con ID: " + id)
+    item_stats = stats(id, time_from)
+    item_name = item_stats[0]
+    item_min_value = item_stats[1]
+    item_max_value = item_stats[2]
+    item_avg_value = item_stats[3]
+    item_last_value = item_stats[4]
+    logging.debug("Estadísticas obtenidas para el producto en seguimiento con ID: " + id)
+
+    # Mostrar detalle de un producto en seguimiento
+    bot.send_message(chat_id=update.message.chat_id,
+                     text="Detalle del producto \"" + item_name + "\":\n"
+                          "  Precio mínimo: " + item_min_value + "€\n"
+                          "  Precio máximo: " + item_max_value + "€\n"
+                          "  Precio medio: " + str(round(float(item_avg_value),2)) + "€\n"
+                          "  Precio actual: " + item_last_value + "€\n")
+    logging.debug("Alfred mostró el detalle del producto en seguimiento con el ID " + id + " a petición del client ID " + str(
+        update.message.chat_id))
+    return True
 
 
 # Función para poner un producto en seguimiento

@@ -58,7 +58,6 @@ def amazon(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text="Gestionar seguimiento de productos de Amazon:\n"
                                                               "  /amazon_list\n"
                                                               "  /amazon_detail\n"
-                                                              "  /amazon_graph\n"
                                                               "  /amazon_add\n"
                                                               "  /amazon_remove\n"
                                                               "  <--  /back\n")
@@ -400,10 +399,6 @@ def main():
     # Añadir al Dispatcher un Handler para el comando /amazon_detail
     amazon_detail_handler = CommandHandler('amazon_detail', amazon_detail)
     dispatcher.add_handler(amazon_detail_handler)
-
-    # Añadir al Dispatcher un Handler para el comando /amazon_graph
-    amazon_graph_handler = CommandHandler('amazon_graph', amazon_graph)
-    dispatcher.add_handler(amazon_graph_handler)
 
     # Añadir al Dispatcher un Handler para el comando /amazon_add
     amazon_add_handler = CommandHandler('amazon_add', amazon_add)
