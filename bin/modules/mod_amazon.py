@@ -512,6 +512,7 @@ def main():
     db_file = config['AMAZON']['DB_FILE']
     user_agent_list = config['AMAZON']['USER_AGENT_LIST']
     user_agent_hit_file = config['AMAZON']['USER_AGENT_HIT_FILE']
+    user_agent_fail_file = config['AMAZON']['USER_AGENT_FAIL_FILE']
     scraping_max_tries = config['AMAZON']['SCRAPING_MAX_TRIES']
     requests_delay_min = config['AMAZON']['REQUESTS_DELAY_MIN']
     requests_delay_max = config['AMAZON']['REQUESTS_DELAY_MAX']
@@ -572,6 +573,9 @@ def main():
             graphyte.send(metric_prefix, float(price))
         else:
             logging.warning("No se ha podido obtener el precio de " + item['name'])
+            # Registro de user agent no validos para su posterior analisis
+            with open(user_agent_fail_file, 'a') as f3:
+                f3.write(user_agent + "\n")
 
     # Análisis de oferta real
     time.sleep(120)

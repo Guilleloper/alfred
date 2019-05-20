@@ -35,6 +35,7 @@
       "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2227.0 Safari/537.36"
     ],
     "USER_AGENT_HIT_FILE": "/var/tmp/user_agent_hits.stats",
+    "USER_AGENT_FAIL_FILE": "/var/tmp/user_agent_fails.stats",
     "SCRAPING_MAX_TRIES": "4",
     "REQUESTS_DELAY_MIN": "5",
     "REQUESTS_DELAY_MAX": "10",
