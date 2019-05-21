@@ -48,7 +48,6 @@ def help(bot, update):
                                                           "  /events\n"
                                                           "  /films\n"
                                                           "  /notes\n"
-                                                          "  /recipes (coming soon)\n"
                                                           "  /restaurants\n")
 
 

@@ -159,24 +159,31 @@ def stats(db_file, graphite_server, graphite_api_port, graphite_prefix, item_id,
             url_last_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + \
                              graphite_prefix + "." + metric_prefix + ",'last')&from=" + str(time_from) + \
                              "&until=now&format=json"
+            url_second_last_value = "http://" + graphite_server + ":" + graphite_api_port + "/render?target=aggregateLine(" + \
+                             graphite_prefix + "." + metric_prefix + ",'last')&from=" + str(time_from) + \
+                             "&until=now-32h&format=json"
             page_min_value = requests.get(url_min_value)
             page_max_value = requests.get(url_max_value)
             page_avg_value = requests.get(url_avg_value)
             page_last_value = requests.get(url_last_value)
+            page_second_last_value = requests.get(url_second_last_value)
             html_min_value = page_min_value.content.decode('utf8')
             html_max_value = page_max_value.content.decode('utf8')
             html_avg_value = page_avg_value.content.decode('utf8')
             html_last_value = page_last_value.content.decode('utf8')
+            html_second_last_value = page_second_last_value.content.decode('utf8')
             json_min_value = json.loads(html_min_value)
             json_max_value = json.loads(html_max_value)
             json_avg_value = json.loads(html_avg_value)
             json_last_value = json.loads(html_last_value)
+            json_second_last_value = json.loads(html_second_last_value)
             item_min_value = json_min_value[0]['tags']['name']
             item_max_value = json_max_value[0]['tags']['name']
             item_avg_value = json_avg_value[0]['tags']['name']
             item_last_value = json_last_value[0]['tags']['name']
+            item_second_last_value = json_second_last_value[0]['tags']['name']
 
-    item_stats = [item_name, item_min_value, item_max_value, item_avg_value, item_last_value]
+    item_stats = [item_name, item_min_value, item_max_value, item_avg_value, item_last_value, item_second_last_value]
     return item_stats
 
 
@@ -465,9 +472,10 @@ def analize_discounts():
             item_min_value = item_stats[1]
             item_avg_value = item_stats[3]
             item_last_value = item_stats[4]
+            item_second_last_value = item_stats[5]
             logging.debug("Estadísticas obtenidas para el producto en seguimiento con ID: " + str(item_id))
             # Comprobar si el precio actual es el mínimo registrado
-            if item_last_value == item_min_value:
+            if item_last_value == item_min_value and item_last_value != item_second_last_value:
                 logging.debug("Oferta real encontrada: precio mínimo registrado para el producto \"" + item_name + "\"")
                 discounts.append({
                     "status": "low_price",
