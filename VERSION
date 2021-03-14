@@ -1,6 +1,1 @@
-1.0.0
-  First version: Alfred with modules amazon, birthdays, events, films, notes and restaurants
-
-1.0.1
-  Fix: Don't repeat the discount notification when the price doesn't change.
-  Feature: Record the failed user agent for scrapin.
+1.1.0

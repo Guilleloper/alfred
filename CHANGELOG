@@ -1,0 +1,15 @@
+1.1.0
+  Fixes:
+    - Readme.md completed.
+    - New files: VERSION and CHANGEME.
+  Features:
+    - Dockerfile for building Docker image.
+
+1.0.1
+  Fixes:
+    - Don't repeat the discount notification when the price doesn't change.
+  Features:
+    - Record the failed user agent for scrapin.
+
+1.0.0
+  First version: Alfred with modules amazon, birthdays, events, films, notes and restaurants
