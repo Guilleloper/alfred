@@ -1,3 +1,10 @@
+1.2.0
+  Fixes:
+    - N/A
+  Features:
+    - New config setting to enable the additional log file (by default log is delivered by stdout).
+    - Changed the console output log format. Now, the time is included.
+
 1.1.0
   Fixes:
     - Readme.md completed.

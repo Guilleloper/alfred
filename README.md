@@ -265,7 +265,7 @@ $ sudo view /etc/logrotate.d/alfred
 $ sudo view /etc/cron.d/events
 ~
 # Alfred events check and notification
-00 10,22 * * * alfred docker exec alfred python /alfred/bin/modules/mod_events.py > /dev/null
+00 10,22 * * * alfred docker exec alfred python /alfred/bin/modules/mod_events.py >/dev/null
 ~
 ```
 
@@ -274,7 +274,7 @@ $ sudo view /etc/cron.d/events
 $ sudo view /etc/cron.d/birthdays
 ~
 # Alfred birthdays check and notification
-00 08,20 * * * alfred docker exec alfred python /alfred/bin/modules/mod_birthdays.py > /dev/null
+00 08,20 * * * alfred docker exec alfred python /alfred/bin/modules/mod_birthdays.py >/dev/null
 ~
 ```
 
@@ -283,7 +283,7 @@ $ sudo view /etc/cron.d/birthdays
 $ sudo view /etc/cron.d/amazon
 ~
 # Alfred amazon price extraction and notification
-00 09,21 * * * alfred docker exec alfred python /alfred/bin/modules/mod_amazon.py > /dev/null
+00 09,21 * * * alfred docker exec alfred python /alfred/bin/modules/mod_amazon.py >/dev/null
 ~
 ```
 
@@ -300,8 +300,8 @@ $ sudo runuser -u alfred -- docker run -d --name alfred \
   -v /etc/localtime:/etc/localtime:ro \
   -v /var/lib/alfred:/alfred/data \
   -v /etc/alfred:/alfred/config \
-  -v /var/log/alfred-docker:/alfred/log \
-  alfred:1.1.0
+  -v /var/log/alfred:/alfred/log \
+  alfred:`cat VERSION`
 ```
 
 16. Configure systemd service, start it and enable it:
@@ -329,8 +329,8 @@ WantedBy=multi-user.target
 
 $ sudo systemctl daemon-reload
 $ sudo systemctl start alfred && systemctl enable alfred
+$ cd; rm -fr /var/tmp/alfred
 ```
-
 <br/><br/>
 
 ## Automatically Ansible deployment

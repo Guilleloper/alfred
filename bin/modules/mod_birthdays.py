@@ -265,18 +265,16 @@ def main():
     log_level = config['BIRTHDAYS']['LOG_LEVEL']
     db_file = config['BIRTHDAYS']['DB_FILE']
 
-    # Configurar logger a fichero:
+    # Configurar logger a stdout
     logging.basicConfig(level=getattr(logging, log_level),
                         format="[%(asctime)s] [%(levelname)s] - [Birthdays] - %(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S",
-                        filename=log_file,
-                        filemode='a')
+                        datefmt="%Y-%m-%d %H:%M:%S")
 
-    # Configurar logger a stdout:
-    console = logging.StreamHandler()
-    console.setLevel(getattr(logging, log_level))
-    console.setFormatter(logging.Formatter("[%(levelname)s] - [Birthdays] - %(message)s"))
-    logging.getLogger('').addHandler(console)
+    # Configurar adcionalmente logger a fichero
+    log_handler = logging.FileHandler(log_file, 'a')
+    log_handler.setLevel(getattr(logging, log_level))
+    log_handler.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] - [Birthdays] - %(message)s", "%Y-%m-%d %H:%M:%S"))
+    logging.getLogger('').addHandler(log_handler)
 
     # Inicio
     logging.info("Inicio del programa")
