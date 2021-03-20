@@ -1,25 +1,29 @@
 {
   "DEFAULT": {
-    "LOG_FILE": "/var/log/alfred/alfred.log",
     "LOG_LEVEL": "INFO",
+    "ADDITIONAL_LOG_TO_FILE": true,
+    "LOG_FILE": "/var/log/alfred/alfred.log",
     "BOT_TOKEN": "¿?",
     "CLIENT_IDS": ["¿?", "¿?"]
   },
   "EVENTS": {
-    "LOG_FILE": "/var/log/alfred/alfred.log",
     "LOG_LEVEL": "INFO",
+    "ADDITIONAL_LOG_TO_FILE": true,
+    "LOG_FILE": "/var/log/alfred/alfred.log",
     "DB_FILE": "/opt/alfred/data/events.json",
     "TMP_PATH": "/var/tmp"
   },
   "BIRTHDAYS": {
-    "LOG_FILE": "/var/log/alfred/alfred.log",
     "LOG_LEVEL": "INFO",
+    "ADDITIONAL_LOG_TO_FILE": true,
+    "LOG_FILE": "/var/log/alfred/alfred.log",
     "DB_FILE": "/opt/alfred/data/birthdays.json",
     "TMP_PATH": "/var/tmp"
   },
   "AMAZON": {
-    "LOG_FILE": "/var/log/alfred/alfred.log",
     "LOG_LEVEL": "INFO",
+    "ADDITIONAL_LOG_TO_FILE": true,
+    "LOG_FILE": "/var/log/alfred/alfred.log",
     "DB_FILE": "/opt/alfred/data/amazon.json",
     "TMP_PATH": "/var/tmp",
     "USER_AGENT_LIST": [

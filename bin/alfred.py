@@ -347,8 +347,9 @@ def main():
     script_path = os.path.dirname(sys.argv[0])
     with open(script_path + '/../config/config.json', 'r') as f:
         config = json.load(f)
-    log_file = config['DEFAULT']['LOG_FILE']
     log_level = config['DEFAULT']['LOG_LEVEL']
+    log_to_file = config['DEFAULT']['ADDITIONAL_LOG_TO_FILE']
+    log_file = config['DEFAULT']['LOG_FILE']
     bot_token = config['DEFAULT']['BOT_TOKEN']
     global client_ids
     client_ids = config['DEFAULT']['CLIENT_IDS']
@@ -359,10 +360,11 @@ def main():
                         datefmt="%Y-%m-%d %H:%M:%S")
 
     # Configurar adcionalmente logger a fichero
-    log_handler = logging.FileHandler(log_file, 'a')
-    log_handler.setLevel(getattr(logging, log_level))
-    log_handler.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] - [Alfred] - %(message)s", "%Y-%m-%d %H:%M:%S"))
-    logging.getLogger('').addHandler(log_handler)
+    if log_to_file:
+        log_handler = logging.FileHandler(log_file, 'a')
+        log_handler.setLevel(getattr(logging, log_level))
+        log_handler.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] - [Alfred] - %(message)s", "%Y-%m-%d %H:%M:%S"))
+        logging.getLogger('').addHandler(log_handler)
 
     # Inicio
     logging.info("Inicio del programa")

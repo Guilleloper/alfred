@@ -64,10 +64,10 @@ $ sudo runuser -u alfred -- touch /home/alfred/.taskrc
 
 3. Install python dependencies:
 ```
-$ sudo pip3.5 install python-telegram-bot --upgrade
-$ sudo pip3.5 install requests
-$ sudo pip3.5 install beautifulsoup4
-$ sudo pip3.5 install graphyte
+$ sudo pip3.5 install python-telegram-bot==10.1.0 --upgrade
+$ sudo pip3.5 install requests==2.12.4
+$ sudo pip3.5 install beautifulsoup4==4.6.0
+$ sudo pip3.5 install graphyte==1.4
 ```
 
 4. Create the software location and place it (choose your own location):
@@ -172,7 +172,7 @@ WantedBy=multi-user.target
 ~
 
 $ sudo systemctl daemon-reload
-$ sudo systemctl start alfred && systemctl enable alfred
+$ sudo systemctl start alfred && sudo systemctl enable alfred
 ```
 <br/><br/>
 
@@ -328,7 +328,7 @@ WantedBy=multi-user.target
 ~
 
 $ sudo systemctl daemon-reload
-$ sudo systemctl start alfred && systemctl enable alfred
+$ sudo systemctl start alfred && sudo systemctl enable alfred
 $ cd; rm -fr /var/tmp/alfred
 ```
 <br/><br/>

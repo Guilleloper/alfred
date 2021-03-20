@@ -377,8 +377,9 @@ def main():
         config = json.load(f)
     bot_token = config['DEFAULT']['BOT_TOKEN']
     client_ids = config['DEFAULT']['CLIENT_IDS']
-    log_file = config['EVENTS']['LOG_FILE']
     log_level = config['EVENTS']['LOG_LEVEL']
+    log_to_file = config['EVENTS']['ADDITIONAL_LOG_TO_FILE']
+    log_file = config['EVENTS']['LOG_FILE']
     db_file = config['EVENTS']['DB_FILE']
 
     # Configurar logger a stdout
@@ -387,10 +388,11 @@ def main():
                         datefmt="%Y-%m-%d %H:%M:%S")
 
     # Configurar adcionalmente logger a fichero
-    log_handler = logging.FileHandler(log_file, 'a')
-    log_handler.setLevel(getattr(logging, log_level))
-    log_handler.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] - [Events] - %(message)s", "%Y-%m-%d %H:%M:%S"))
-    logging.getLogger('').addHandler(log_handler)
+    if log_to_file:
+        log_handler = logging.FileHandler(log_file, 'a')
+        log_handler.setLevel(getattr(logging, log_level))
+        log_handler.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] - [Events] - %(message)s", "%Y-%m-%d %H:%M:%S"))
+        logging.getLogger('').addHandler(log_handler)
 
     # Inicio
     logging.info("Inicio del programa")
