@@ -1,5 +1,5 @@
 python-telegram-bot==10.1.0
-requests==2.12.4
+requests==2.20.0
 beautifulsoup4==4.6.0
 graphyte==1.4
 lxml==4.6.3
