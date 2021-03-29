@@ -1,3 +1,5 @@
-venv/
+Pipfile
+Pipfile.lock
 bin/modules/__pycache__/
 log/
+my_tests/
