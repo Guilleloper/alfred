@@ -563,12 +563,16 @@ def main():
             logging.debug("Intento: " + str(n_tries) + ", Header: " + header['User-Agent'])
             page = requests.get(item['url'], headers=header)
             soup = BeautifulSoup(page.content, "lxml")
-            for divs in soup.find_all("div"):
+            try:
+                price = soup.find("span", attrs={'id':'priceblock_ourprice'}).string.strip()[:-2]
+                break
+            except AttributeError:
                 try:
-                    price = str(divs['data-asin-price'])
+                    # If there is some deal price
+                    price = soup.find("span", attrs={'id':'priceblock_dealprice'}).string.strip()[:-2]
                     break
-                except:
-                    pass
+                except:     
+                    price = ""
             n_tries += 1
         if price:
             logging.info("Precio de " + item['name'] + " encontrado: " + price + " €")

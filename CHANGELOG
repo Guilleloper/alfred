@@ -1,3 +1,9 @@
+1.2.2
+  Fixes:
+    - Amazon module now works fine. The html element of product price was changed and user agents was obsoleted.
+  Features:
+    - Included requirements.txt for creating a Pipenv environment.
+
 1.2.1
   Fixes:
     - Dockerfile includes lxml python library for the docker image, needed by Amazon module.
